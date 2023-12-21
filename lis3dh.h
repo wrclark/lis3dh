@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-/* rats */
+/* rates */
 #define LIS3DH_ODR_1_HZ  0b0001
 #define LIS3DH_ODR_10_HZ 0b0010
 #define LIS3DH_ODR_25_HZ 0b0011
@@ -11,9 +11,8 @@
 #define LIS3DH_ODR_100_HZ 0b0101
 #define LIS3DH_ODR_200_HZ 0b0110
 #define LIS3DH_ODR_400_HZ 0b0111
-#define LIS3DH_ODR_10_HZ 0b0011
-#define LIS3DH_ODR_LP_1600_HZ 0b1000
 #define LIS3DH_ODR_NORM_1344_HZ 0b1001
+#define LIS3DH_ODR_LP_1600_HZ 0b1000
 #define LIS3DH_ODR_LP_5376_HZ 0b1001
 
 /* range/sens */
