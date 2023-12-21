@@ -16,10 +16,15 @@
 #define LIS3DH_ODR_LP_5376_HZ 0b1001
 
 /* range/sens */
-#define LIS3DH_FS_2G = 0b00
-#define LIS3DH_FS_4G = 0b01
-#define LIS3DH_FS_8G = 0b10
-#define LIS3DH_FS_16G = 0b11
+#define LIS3DH_FS_2G 0b00
+#define LIS3DH_FS_4G 0b01
+#define LIS3DH_FS_8G 0b10
+#define LIS3DH_FS_16G 0b11
+
+/* modes */
+#define LIS3DH_MODE_HR 0b00
+#define LIS3DH_MODE_LP 0b01
+#define LIS3DH_MODE_NORMAL 0b10
 
 
 struct lis3dh_device {
@@ -33,18 +38,26 @@ struct lis3dh_device {
 struct lis3dh_config {
     uint8_t rate; /* ODR */
     uint8_t range; /* FS */
-    uint8_t mode; /* LPen */
-    uint8_t hr; /* high resolution */
+    uint8_t mode; /* LPen and HR */
+};
+
+struct lis3dh_acceleration {
+    double x;
+    double y;
+    double z;
 };
 
 struct lis3dh {
     struct lis3dh_device dev;
     struct lis3dh_config cfg;
+    struct lis3dh_acceleration acc;
 };
 
 typedef struct lis3dh lis3dh_t;
 
 int lis3dh_init(lis3dh_t *lis3dh);
 int lis3dh_deinit(lis3dh_t *lis3dh);
-
+int lis3dh_configure(lis3dh_t *lis3dh);
+int lis3dh_poll(lis3dh_t *lis3dh);
+int lis3dh_read(lis3dh_t *lis3dh);
 #endif

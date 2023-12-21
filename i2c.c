@@ -24,16 +24,16 @@ int i2c_init(void) {
 	fd = open(I2C_DEVICE, O_RDWR);
 	if (fd < 0) {
 		fprintf(stderr, "could not open device: %s\n", I2C_DEVICE);
-		return I2C_ERR;
+		return 1;
 	}
 
 	if (ioctl(fd, I2C_SLAVE, I2C_LIS3DH_ADDRESS) < 0) {
 		fprintf(stderr, "failed to acquire bus/talk to slave\n");
 		close(fd);
-		return I2C_ERR;
+		return 1;
 	}
 
-	return I2C_OK;
+	return 0;
 }
 
 
@@ -43,11 +43,11 @@ int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
 	
 	if (read(fd, dst, size) != (ssize_t)size) {
 		fprintf(stderr, "error read()\n");
-		return I2C_ERR;
+		return 1;
 	
 	}
 
-	return I2C_OK;
+	return 0;
 }
 
 
@@ -56,10 +56,10 @@ int i2c_write(uint8_t reg, uint8_t value) {
 	
 	if (write(fd, cmd, 2) != 2) {
 		fprintf(stderr, "error write()\n");
-		return I2C_ERR;
+		return 1;
 	}
 
-	return I2C_OK;
+	return 0;
 }
 
 int i2c_deinit(void) {
@@ -67,5 +67,5 @@ int i2c_deinit(void) {
 		close(fd);
 	}
 
-	return I2C_OK;
+	return 0;
 }
