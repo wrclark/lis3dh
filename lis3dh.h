@@ -37,12 +37,39 @@
 #define LIS3DH_FIFO_TRIG_INT1 0b0
 #define LIS3DH_FIFO_TRIG_INT2 0b1
 
+/* filter modes */
+/* this one is reset by reading REFERENCE (0x26) */
+#define LIS3DH_FILTER_MODE_NORMAL 0b00
+#define LIS3DH_FILTER_MODE_REFERENCE 0b01
+#define LIS3DH_FILTER_MODE_NORMAL2 0b10 /* same as 00? */
+#define LIS3DH_FILTER_MODE_AUTORESET 0b11
+
+/* filter cutoff */
+/* unfortunately, there is only a table for low-power mode,
+   and the actual cutoff-frequency depends on the ODR.
+   Naming scheme after ODR@400Hz
+   AN3308 > section 4.3.1.1 */
+#define LIS3DH_FILTER_CUTOFF_8 0b00 /* highest freq */
+#define LIS3DH_FILTER_CUTOFF_4 0b01
+#define LIS3DH_FILTER_CUTOFF_2 0b10
+#define LIS3DH_FILTER_CUTOFF_1 0b11 /* lowest freq */
+
+
 struct lis3dh_device {
 	int (*init)(void);
 	int (*read)(uint8_t reg, uint8_t *dst, uint32_t size);
 	int (*write)(uint8_t reg, uint8_t value);
 	int (*sleep)(uint32_t dur_us);
 	int (*deinit)(void);
+};
+
+struct lis3dh_filter_config {
+    uint8_t mode;
+    uint8_t cutoff;
+    uint8_t fds; /* 1 -> use this filter */
+    uint8_t hpclick; /* 1 -> use for "CLICK" function */
+    uint8_t ia2; /* 1 -> use for AOI func on INT 2 */
+    uint8_t ia1; /* 1 -> use for AOI func on INT 1 */
 };
 
 struct lis3dh_fifo_config {
@@ -56,6 +83,7 @@ struct lis3dh_config {
     uint8_t range; /* FS */
     uint8_t mode; /* LPen and HR */
     struct lis3dh_fifo_config fifo;
+    struct lis3dh_filter_config filter;
 };
 
 struct lis3dh_acceleration {

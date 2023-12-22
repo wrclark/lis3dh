@@ -32,6 +32,9 @@ int main() {
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
+    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_2;
+    lis.cfg.filter.fds = 1;
 
     if (lis3dh_configure(&lis)) {
         puts("configure ERR");

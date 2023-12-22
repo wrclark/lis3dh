@@ -58,6 +58,12 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.trig = 0;
     lis3dh->cfg.fifo.fth = 0;
+    lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
+    lis3dh->cfg.filter.cutoff = 0;
+    lis3dh->cfg.filter.fds = 0;
+    lis3dh->cfg.filter.hpclick = 0;
+    lis3dh->cfg.filter.ia1 = 0;
+    lis3dh->cfg.filter.ia2 = 0;
 
     err |= lis3dh_reset(lis3dh);
 
@@ -66,13 +72,14 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 
 int lis3dh_configure(lis3dh_t *lis3dh) {
 
-    uint8_t ctrl_reg1, ctrl_reg4, ctrl_reg5;
+    uint8_t ctrl_reg1, ctrl_reg2, ctrl_reg4, ctrl_reg5;
     uint8_t fifo_ctrl_reg;
     uint8_t ref;
     int err = 0;
 
     /* last 0b111 enables Z, Y and X axis */
     ctrl_reg1 = 0 | (lis3dh->cfg.rate << 4) | 0b111;
+    ctrl_reg2 = 0;
     ctrl_reg4 = 0 | (lis3dh->cfg.range << 4);
     ctrl_reg5 = 0;
     fifo_ctrl_reg = 0;
@@ -83,6 +90,16 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth & 0x1F);
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
         fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
+    }
+
+    /* set enable filter */
+    if (lis3dh->cfg.filter.mode != 0xFF) {
+        ctrl_reg2 |= ((lis3dh->cfg.filter.mode & 0b11) << 6);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.cutoff & 0b11) << 4);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.fds & 1) << 3);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.hpclick & 1) << 2);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.ia1 & 1) << 1);
+        ctrl_reg2 |= (lis3dh->cfg.filter.ia2 & 1);
     }
 
     /* always set block update */
@@ -99,6 +116,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     }
 
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
+    err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
     err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
