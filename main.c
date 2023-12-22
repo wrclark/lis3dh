@@ -23,31 +23,33 @@ int main() {
     lis.dev.deinit = i2c_deinit;
 
 
-    if (!lis3dh_init(&lis)) {
-        puts("init OK");
+    if (lis3dh_init(&lis)) {
+        puts("init ERR");
     }
 
     lis.cfg.mode = LIS3DH_MODE_NORMAL;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
 
-    if (!lis3dh_configure(&lis)) {
-        puts("configure OK");
+    if (lis3dh_configure(&lis)) {
+        puts("configure ERR");
     }
 
-    if (!lis3dh_poll(&lis)) {
-        puts("poll OK");
+    for(int i=0; i<100; i++) {
+        if (lis3dh_poll(&lis)) {
+            puts("poll ERR");
+        }
+
+        if (lis3dh_read(&lis)) {
+            puts("read ERR");
+        }
+
+        printf("x: % 04.04f g, y: % 04.04f g, z: % 04.04f g, mag:% 04.04f\n",
+            lis.acc.x, lis.acc.y, lis.acc.z, accel_mag(&lis));
     }
 
-    if (!lis3dh_read(&lis)) {
-        puts("read OK");
-    }
-
-    printf("x: %.3g, y: %.3g, z: %.3g\n", lis.acc.x, lis.acc.y, lis.acc.z);
-    printf("mag: %.3g\n", accel_mag(&lis));
-
-    if (!lis3dh_deinit(&lis)) {
-        puts("deinit OK");
+    if (lis3dh_deinit(&lis)) {
+        puts("deinit ERR");
     }
 
     return 0;

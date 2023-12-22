@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 /* rates */
+#define LIS3DH_ODR_POWEROFF 0b0000
 #define LIS3DH_ODR_1_HZ  0b0001
 #define LIS3DH_ODR_10_HZ 0b0010
 #define LIS3DH_ODR_25_HZ 0b0011

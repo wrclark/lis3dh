@@ -32,6 +32,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 int lis3dh_configure(lis3dh_t *lis3dh) {
 
     uint8_t ctrl_reg1, ctrl_reg4;
+    uint8_t ref;
     int err = 0;
 
     /* last 0b111 enables Z, Y and X axis */
@@ -46,9 +47,19 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         ctrl_reg4 |= 0x08;
     }
 
+    /* set LPen */
+    if (lis3dh->cfg.mode == LIS3DH_MODE_LP) {
+        ctrl_reg1 |= 0b1000;
+    }
+
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
 
+    /* read REFERENCE to clear internal filter struct */
+    err |= lis3dh->dev.read(REG_REFERENCE, &ref, 1);
+
+    /* sleep for a period TBD ~ ODR */
+    lis3dh->dev.sleep(5000); /* 5 ms */
     return err;
 }
 
@@ -121,7 +132,7 @@ static uint8_t acc_sensitivity(lis3dh_t *lis3dh) {
             if (mode == LIS3DH_MODE_LP) {
                 return 192;
             } else if (mode == LIS3DH_MODE_NORMAL) {
-                return 148;
+                return 48;
             } else {
                 return 12;
             }
@@ -145,6 +156,7 @@ int lis3dh_read(lis3dh_t *lis3dh) {
        have the device auto-increment the address. */
     err |= lis3dh->dev.read(REG_OUT_X_L | 0x80, data, 6);
 
+    /* x,y,z are now in mg */
     x = (((int16_t)((data[0] << 8) | data[1])) >> scale) * sens;
     y = (((int16_t)((data[2] << 8) | data[3])) >> scale) * sens;
     z = (((int16_t)((data[4] << 8) | data[5])) >> scale) * sens;
