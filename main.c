@@ -28,12 +28,12 @@ int main() {
         puts("init ERR");
     }
 
-    lis.cfg.mode = LIS3DH_MODE_NORMAL;
-    lis.cfg.range = LIS3DH_FS_2G;
-    lis.cfg.rate = LIS3DH_ODR_100_HZ;
-    lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
-    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_2;
+    lis.cfg.mode = LIS3DH_MODE_HR;
+    lis.cfg.range = LIS3DH_FS_4G;
+    lis.cfg.rate = LIS3DH_ODR_25_HZ;
+    lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
+ //lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
+    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.fds = 1;
 
     if (lis3dh_configure(&lis)) {

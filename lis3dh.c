@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "lis3dh.h"
 #include "registers.h"
 
@@ -247,6 +248,10 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     return err;
 }
 
+static double mag(double x, double y, double z) {
+    return sqrt( powf(x, 2) + powf(y, 2) + powf(z, 2) );
+}
+
 int lis3dh_read_fifo(lis3dh_t *lis3dh) {
 
     int16_t x, y, z;
@@ -269,10 +274,15 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh) {
         y = (((int16_t)((data[i + 2] << 8) | data[i + 3])) >> scale) * sens;
         z = (((int16_t)((data[i + 4] << 8) | data[i + 5])) >> scale) * sens;
 
-        printf("x: %04.04f, y: %04.04f, z: %04.04f\n", 
-            (double)x / 1000.0,
-            (double)y / 1000.0,
-            (double)z / 1000.0);
+        double dx = ((double)x) / 1000.0;
+        double dy = ((double)y) / 1000.0;
+        double dz = ((double)z) / 1000.0;
+
+        printf("x: %04.04f, y: %04.04f, z: %04.04f mag:%f\n", 
+            dx,
+            dy,
+            dz,
+            mag(dx, dy, dz));
     }
 
     puts("<= FIFO");
