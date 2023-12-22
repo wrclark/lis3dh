@@ -22,11 +22,20 @@
 #define LIS3DH_FS_8G 0b10
 #define LIS3DH_FS_16G 0b11
 
-/* modes */
+/* operating modes */
 #define LIS3DH_MODE_HR 0b00
 #define LIS3DH_MODE_LP 0b01
 #define LIS3DH_MODE_NORMAL 0b10
 
+/* FIFO modes */
+#define LIS3DH_FIFO_MODE_BYPASS 0b00
+#define LIS3DH_FIFO_MODE_NORMAL 0b01 /* "FIFO" */
+#define LIS3DH_FIFO_MODE_STREAM 0b10
+#define LIS3DH_FIFO_MODE_STREAM_TO_FIFO 0b11
+
+/* FIFO trigger pin selection */
+#define LIS3DH_FIFO_TRIG_INT1 0b0
+#define LIS3DH_FIFO_TRIG_INT2 0b1
 
 struct lis3dh_device {
 	int (*init)(void);
@@ -36,10 +45,18 @@ struct lis3dh_device {
 	int (*deinit)(void);
 };
 
+struct lis3dh_fifo_config {
+    uint8_t fth;
+    uint8_t trig;
+    uint8_t mode;
+    uint8_t enable;
+};
+
 struct lis3dh_config {
     uint8_t rate; /* ODR */
     uint8_t range; /* FS */
     uint8_t mode; /* LPen and HR */
+    struct lis3dh_fifo_config fifo;
 };
 
 struct lis3dh_acceleration {
@@ -61,4 +78,7 @@ int lis3dh_deinit(lis3dh_t *lis3dh);
 int lis3dh_configure(lis3dh_t *lis3dh);
 int lis3dh_poll(lis3dh_t *lis3dh);
 int lis3dh_read(lis3dh_t *lis3dh);
+int lis3dh_poll_fifo(lis3dh_t *lis3dh);
+int lis3dh_read_fifo(lis3dh_t *lis3dh);
+
 #endif

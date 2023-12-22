@@ -16,13 +16,25 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     int err = 0;
 
     if (lis3dh->dev.init() != 0) {
-        err |= 1;
+        return 1;
     }
 
     err |= lis3dh->dev.read(REG_WHO_AM_I, &result, 1);
     if (result != 0x33) {
-        err |= 1;
+       return 1;
     }
+
+    /* zero struct */
+    lis3dh->acc.x = 0.0;
+    lis3dh->acc.y = 0.0;
+    lis3dh->acc.z = 0.0;
+    lis3dh->cfg.rate = 0;
+    lis3dh->cfg.range = 0;
+    lis3dh->cfg.mode = 0;
+    lis3dh->cfg.fifo.mode = 0;
+    lis3dh->cfg.fifo.trig = 0;
+    lis3dh->cfg.fifo.fth = 0;
+    lis3dh->cfg.fifo.enable = 0;
 
     err |= lis3dh_reboot(lis3dh);
 
@@ -31,15 +43,26 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 
 int lis3dh_configure(lis3dh_t *lis3dh) {
 
-    uint8_t ctrl_reg1, ctrl_reg4;
+    uint8_t ctrl_reg1, ctrl_reg4, ctrl_reg5;
+    uint8_t fifo_ctrl_reg;
     uint8_t ref;
     int err = 0;
 
     /* last 0b111 enables Z, Y and X axis */
     ctrl_reg1 = 0 | (lis3dh->cfg.rate << 4) | 0b111;
     ctrl_reg4 = 0 | (lis3dh->cfg.range << 4);
+    ctrl_reg5 = 0;
+    fifo_ctrl_reg = 0;
 
-    /* set block update */
+    /* set enable FIFO */
+    if (lis3dh->cfg.fifo.enable) {
+        ctrl_reg5 |= 0x40;
+        fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth & 0x1F);
+        fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
+        fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
+    }
+
+    /* always set block update */
     ctrl_reg4 |= 0x80;
 
     /* set high resolution */
@@ -54,6 +77,8 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
+    err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
+    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
 
     /* read REFERENCE to clear internal filter struct */
     err |= lis3dh->dev.read(REG_REFERENCE, &ref, 1);
@@ -69,8 +94,21 @@ int lis3dh_poll(lis3dh_t *lis3dh) {
     int err = 0;
 
     do {
+        lis3dh->dev.sleep(1000); /* 1 ms */
         err |= lis3dh->dev.read(REG_STATUS_REG, &status, 1);
     } while (!err && !((status >> 3) & 1));
+
+    return err;
+}
+
+int lis3dh_poll_fifo(lis3dh_t *lis3dh) {
+    uint8_t src;
+    int err = 0;
+
+    do {
+        lis3dh->dev.sleep(1000); /* 1 ms */
+        err |= lis3dh->dev.read(REG_FIFO_SRC_REG, &src, 1);
+    } while (!err && !(src >> 6));
 
     return err;
 }
@@ -164,6 +202,39 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     lis3dh->acc.x = (double)x / 1000.0;
     lis3dh->acc.y = (double)y / 1000.0;
     lis3dh->acc.z = (double)z / 1000.0;
+
+    return err;
+}
+
+int lis3dh_read_fifo(lis3dh_t *lis3dh) {
+
+    int16_t x, y, z;
+    uint8_t scale, sens;
+    uint8_t data[192];
+    int err = 0;
+
+    scale = acc_shift(lis3dh);
+    sens = acc_sensitivity(lis3dh);
+
+    /* must set MSbit of the address to multi-read and 
+       have the device auto-increment the address.
+       see 5.1.5 in datasheet. */
+    err |= lis3dh->dev.read(REG_OUT_X_L | 0x80, data, 192);
+
+    puts("FIFO =>");
+
+    for(int i=0; i<192; i+=6) {
+        x = (((int16_t)((data[i + 0] << 8) | data[i + 1])) >> scale) * sens;
+        y = (((int16_t)((data[i + 2] << 8) | data[i + 3])) >> scale) * sens;
+        z = (((int16_t)((data[i + 4] << 8) | data[i + 5])) >> scale) * sens;
+
+        printf("x: %04.04f, y: %04.04f, z: %04.04f\n", 
+            (double)x / 1000.0,
+            (double)y / 1000.0,
+            (double)z / 1000.0);
+    }
+
+    puts("<= FIFO");
 
     return err;
 }

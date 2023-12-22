@@ -23,6 +23,7 @@ int main() {
     lis.dev.deinit = i2c_deinit;
 
 
+    /* write config after init() */
     if (lis3dh_init(&lis)) {
         puts("init ERR");
     }
@@ -30,11 +31,14 @@ int main() {
     lis.cfg.mode = LIS3DH_MODE_NORMAL;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
+    lis.cfg.fifo.enable = 1;
+    lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
 
     if (lis3dh_configure(&lis)) {
         puts("configure ERR");
     }
 
+/*
     for(int i=0; i<100; i++) {
         if (lis3dh_poll(&lis)) {
             puts("poll ERR");
@@ -47,7 +51,17 @@ int main() {
         printf("x: % 04.04f g, y: % 04.04f g, z: % 04.04f g, mag:% 04.04f\n",
             lis.acc.x, lis.acc.y, lis.acc.z, accel_mag(&lis));
     }
+    */
 
+    /* FIFO test */
+    if (lis3dh_poll_fifo(&lis)) {
+        puts("poll_fifo ERR");
+    }
+
+    if (lis3dh_read_fifo(&lis)) {
+        puts("read_fifo ERR");
+    }
+    
     if (lis3dh_deinit(&lis)) {
         puts("deinit ERR");
     }
