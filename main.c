@@ -31,7 +31,6 @@ int main() {
     lis.cfg.mode = LIS3DH_MODE_NORMAL;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
-    lis.cfg.fifo.enable = 1;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
 
     if (lis3dh_configure(&lis)) {

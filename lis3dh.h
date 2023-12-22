@@ -49,7 +49,6 @@ struct lis3dh_fifo_config {
     uint8_t fth;
     uint8_t trig;
     uint8_t mode;
-    uint8_t enable;
 };
 
 struct lis3dh_config {

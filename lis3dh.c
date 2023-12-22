@@ -2,11 +2,35 @@
 #include "lis3dh.h"
 #include "registers.h"
 
-static int lis3dh_reboot(lis3dh_t *lis3dh) {
+/* reset user regs and reload trim params */
+static int lis3dh_reset(lis3dh_t *lis3dh) {
     int err = 0;
 
+    /* set BOOT bit so device reloads internal trim parameters */
     err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
-    lis3dh->dev.sleep(5000); /* sleep 5 ms */
+
+    /* write default values to rw regs */
+    err |= lis3dh->dev.write(REG_CTRL_REG0, 0b10000);
+    err |= lis3dh->dev.write(REG_CTRL_REG1, 0b111);
+    err |= lis3dh->dev.write(REG_CTRL_REG2, 0);
+    err |= lis3dh->dev.write(REG_CTRL_REG3, 0);
+    err |= lis3dh->dev.write(REG_CTRL_REG4, 0);
+    err |= lis3dh->dev.write(REG_CTRL_REG5, 0);
+    err |= lis3dh->dev.write(REG_CTRL_REG6, 0);
+    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, 0);
+    err |= lis3dh->dev.write(REG_INT1_CFG, 0);
+    err |= lis3dh->dev.write(REG_INT1_THS, 0);
+    err |= lis3dh->dev.write(REG_INT1_DURATION, 0);
+    err |= lis3dh->dev.write(REG_INT2_CFG, 0);
+    err |= lis3dh->dev.write(REG_INT2_THS, 0);
+    err |= lis3dh->dev.write(REG_INT2_DURATION, 0);
+    err |= lis3dh->dev.write(REG_CLICK_CFG, 0);
+    err |= lis3dh->dev.write(REG_CLICK_THS, 0);
+    err |= lis3dh->dev.write(REG_TIME_LIMIT, 0);
+    err |= lis3dh->dev.write(REG_TIME_LATENCY, 0);
+    err |= lis3dh->dev.write(REG_TIME_WINDOW, 0);
+    err |= lis3dh->dev.write(REG_ACT_THS, 0);
+    err |= lis3dh->dev.write(REG_ACT_DUR, 0);
     
     return err;
 }
@@ -31,12 +55,11 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.rate = 0;
     lis3dh->cfg.range = 0;
     lis3dh->cfg.mode = 0;
-    lis3dh->cfg.fifo.mode = 0;
+    lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.trig = 0;
     lis3dh->cfg.fifo.fth = 0;
-    lis3dh->cfg.fifo.enable = 0;
 
-    err |= lis3dh_reboot(lis3dh);
+    err |= lis3dh_reset(lis3dh);
 
     return err;
 }
@@ -55,7 +78,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     fifo_ctrl_reg = 0;
 
     /* set enable FIFO */
-    if (lis3dh->cfg.fifo.enable) {
+    if (lis3dh->cfg.fifo.mode != 0xFF) {
         ctrl_reg5 |= 0x40;
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth & 0x1F);
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
@@ -84,7 +107,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.read(REG_REFERENCE, &ref, 1);
 
     /* sleep for a period TBD ~ ODR */
-    lis3dh->dev.sleep(5000); /* 5 ms */
+    lis3dh->dev.sleep(50000); /* 50 ms */
     return err;
 }
 
