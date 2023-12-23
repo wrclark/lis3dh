@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <math.h>
 #include "lis3dh.h"
 #include "registers.h"
 
@@ -241,9 +239,9 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     y = (((int16_t)((data[2] << 8) | data[3])) >> scale) * sens;
     z = (((int16_t)((data[4] << 8) | data[5])) >> scale) * sens;
 
-    lis3dh->acc.x = (double)x / 1000.0;
-    lis3dh->acc.y = (double)y / 1000.0;
-    lis3dh->acc.z = (double)z / 1000.0;
+    lis3dh->acc.x = ((float)x) / 1000.0;
+    lis3dh->acc.y = ((float)y) / 1000.0;
+    lis3dh->acc.z = ((float)z) / 1000.0;
 
     return err;
 }

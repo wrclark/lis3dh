@@ -87,9 +87,9 @@ struct lis3dh_config {
 };
 
 struct lis3dh_acceleration {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 };
 
 struct lis3dh {
