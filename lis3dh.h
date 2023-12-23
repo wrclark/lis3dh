@@ -63,19 +63,38 @@ struct lis3dh_device {
 	int (*deinit)(void);
 };
 
+struct lis3dh_pin2_config {
+    uint8_t click; /* CLICK interrupt */
+    uint8_t ia1; /* IA1 interrupt */
+    uint8_t ia2; /* IA2 interrupt */
+    uint8_t boot; /* enable BOOT on pin 2 */
+    uint8_t act; /* interrupt on activity */
+    uint8_t polarity; /* INT1 & INT2 polarity. 0 active high, 1 active low */
+};
+
+struct lis3dh_pin1_config {
+    uint8_t click; /* CLICK interrupt */
+    uint8_t ia1; /* IA1 interrupt */
+    uint8_t ia2; /* IA2 interrupt */
+    uint8_t drdy_zyxda; /* new [xyz] data ready (not via FIFO) */
+    uint8_t drdy_321; /* not sure */
+    uint8_t wtm; /* FIFO reached watermark level */
+    uint8_t overrun; /* FIFO has overrun */
+};
+
 struct lis3dh_filter_config {
-    uint8_t mode;
-    uint8_t cutoff;
-    uint8_t fds; /* 1 -> use this filter */
-    uint8_t hpclick; /* 1 -> use for "CLICK" function */
-    uint8_t ia2; /* 1 -> use for AOI func on INT 2 */
-    uint8_t ia1; /* 1 -> use for AOI func on INT 1 */
+    uint8_t mode; /* filter mode, reset behaviour */
+    uint8_t cutoff; /* high-pass filter cutoff freq (~ ODR) */
+    uint8_t fds; /* ¬(bypass filter) */
+    uint8_t click; /* enable filter for CLICK function */
+    uint8_t ia2; /* enable filter for AOI func on INT 2 */
+    uint8_t ia1; /* enable filter for AOI func on INT 1 */
 };
 
 struct lis3dh_fifo_config {
     uint8_t fth; /* user-specified watermark level 0-32 */
-    uint8_t trig;
-    uint8_t mode; 
+    uint8_t trig; /* pin to trigger when watermark/overrun occurs */
+    uint8_t mode; /* FIFO mode */
 };
 
 struct lis3dh_config {
@@ -84,6 +103,8 @@ struct lis3dh_config {
     uint8_t mode; /* LPen and HR */
     struct lis3dh_fifo_config fifo;
     struct lis3dh_filter_config filter;
+    struct lis3dh_pin1_config pin1;
+    struct lis3dh_pin2_config pin2;
 };
 
 struct lis3dh_acceleration {

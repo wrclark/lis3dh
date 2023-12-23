@@ -51,18 +51,36 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->acc.x = 0.0;
     lis3dh->acc.y = 0.0;
     lis3dh->acc.z = 0.0;
+
     lis3dh->cfg.rate = 0;
     lis3dh->cfg.range = 0;
     lis3dh->cfg.mode = 0;
+
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.trig = 0;
     lis3dh->cfg.fifo.fth = 32; /* default watermark level. */
+
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.cutoff = 0;
     lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
-    lis3dh->cfg.filter.hpclick = 0;
+    lis3dh->cfg.filter.click = 0;
     lis3dh->cfg.filter.ia1 = 0;
     lis3dh->cfg.filter.ia2 = 0;
+
+    lis3dh->cfg.pin1.click = 0;
+    lis3dh->cfg.pin1.ia1 = 0;
+    lis3dh->cfg.pin1.ia2 = 0;
+    lis3dh->cfg.pin1.drdy_zyxda = 0;
+    lis3dh->cfg.pin1.drdy_321 = 0;
+    lis3dh->cfg.pin1.wtm = 0;
+    lis3dh->cfg.pin1.overrun = 0;
+
+    lis3dh->cfg.pin2.click = 0;
+    lis3dh->cfg.pin2.ia1 = 0;
+    lis3dh->cfg.pin2.ia2 = 0;
+    lis3dh->cfg.pin2.boot = 0;
+    lis3dh->cfg.pin2.act = 0;
+    lis3dh->cfg.pin2.polarity = 0;
 
     err |= lis3dh_reset(lis3dh);
 
@@ -70,23 +88,47 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 }
 
 int lis3dh_configure(lis3dh_t *lis3dh) {
-
-    uint8_t ctrl_reg1, ctrl_reg2, ctrl_reg4, ctrl_reg5;
+    uint8_t ctrl_reg1, ctrl_reg2, ctrl_reg3;
+    uint8_t ctrl_reg4, ctrl_reg5, ctrl_reg6;
     uint8_t fifo_ctrl_reg;
-    uint8_t ref;
+    uint8_t ref; /* dummy */
     int err = 0;
 
-    /* last 0b111 enables Z, Y and X axis */
+    /* the 0x07 enables Z, Y and X axis in that order */
     ctrl_reg1 = 0 | (lis3dh->cfg.rate << 4) | 0x07;
     ctrl_reg2 = 0;
+    ctrl_reg3 = 0;
     ctrl_reg4 = 0 | (lis3dh->cfg.range << 4);
     ctrl_reg5 = 0;
+    ctrl_reg6 = 0;
     fifo_ctrl_reg = 0;
+
+    /* set pin interrupt settings */
+    ctrl_reg3 |= (lis3dh->cfg.pin1.click & 1) << 7;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.ia1 & 1) << 6;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.ia2 & 1) << 5;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.drdy_zyxda & 1) << 4;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.drdy_321 & 1) << 3;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.wtm & 1) << 2;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.overrun & 1) << 1;
+
+    ctrl_reg6 |= (lis3dh->cfg.pin2.click & 1) << 7;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.ia1 & 1) << 6;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.ia2 & 1) << 5;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.boot & 1) << 4;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.act & 1) << 3;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.polarity & 1) << 1;
 
     /* set enable FIFO */
     if (lis3dh->cfg.fifo.mode != 0xFF) {
-        ctrl_reg5 |= 0x40;
-        fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth & 0x1F);
+        ctrl_reg5 |= 0x40; /* bit FIFO_EN */
+        
+        /* restrict maximum fifo size */
+        if (lis3dh->cfg.fifo.fth > 32) {
+            lis3dh->cfg.fifo.fth = 32;
+        }
+
+        fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth);
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
         fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
     }
@@ -96,7 +138,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         ctrl_reg2 |= ((lis3dh->cfg.filter.mode & 0x03) << 6);
         ctrl_reg2 |= ((lis3dh->cfg.filter.cutoff & 0x03) << 4);
         ctrl_reg2 |= ((lis3dh->cfg.filter.fds & 1) << 3);
-        ctrl_reg2 |= ((lis3dh->cfg.filter.hpclick & 1) << 2);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.click & 1) << 2);
         ctrl_reg2 |= ((lis3dh->cfg.filter.ia1 & 1) << 1);
         ctrl_reg2 |= (lis3dh->cfg.filter.ia2 & 1);
     }
@@ -116,8 +158,10 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
     err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
+    err |= lis3dh->dev.write(REG_CTRL_REG3, ctrl_reg3);
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
     err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
+    err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
 
     /* read REFERENCE to clear internal filter struct */
@@ -129,7 +173,6 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 }
 
 int lis3dh_poll(lis3dh_t *lis3dh) {
-
     uint8_t status;
     int err = 0;
 
@@ -172,7 +215,6 @@ static uint8_t acc_shift(lis3dh_t *lis3dh) {
 /* returns a scalar that when multiplied with axis reading
    turns it to a multiple of mg. */
 static uint8_t acc_sensitivity(lis3dh_t *lis3dh) {
-
     uint8_t mode = lis3dh->cfg.mode;
 
     switch (lis3dh->cfg.range) {
