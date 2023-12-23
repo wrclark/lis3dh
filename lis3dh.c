@@ -9,27 +9,27 @@ static int lis3dh_reset(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
 
     /* write default values to rw regs */
-    err |= lis3dh->dev.write(REG_CTRL_REG0, 0b10000);
-    err |= lis3dh->dev.write(REG_CTRL_REG1, 0b111);
-    err |= lis3dh->dev.write(REG_CTRL_REG2, 0);
-    err |= lis3dh->dev.write(REG_CTRL_REG3, 0);
-    err |= lis3dh->dev.write(REG_CTRL_REG4, 0);
-    err |= lis3dh->dev.write(REG_CTRL_REG5, 0);
-    err |= lis3dh->dev.write(REG_CTRL_REG6, 0);
-    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, 0);
-    err |= lis3dh->dev.write(REG_INT1_CFG, 0);
-    err |= lis3dh->dev.write(REG_INT1_THS, 0);
-    err |= lis3dh->dev.write(REG_INT1_DURATION, 0);
-    err |= lis3dh->dev.write(REG_INT2_CFG, 0);
-    err |= lis3dh->dev.write(REG_INT2_THS, 0);
-    err |= lis3dh->dev.write(REG_INT2_DURATION, 0);
-    err |= lis3dh->dev.write(REG_CLICK_CFG, 0);
-    err |= lis3dh->dev.write(REG_CLICK_THS, 0);
-    err |= lis3dh->dev.write(REG_TIME_LIMIT, 0);
-    err |= lis3dh->dev.write(REG_TIME_LATENCY, 0);
-    err |= lis3dh->dev.write(REG_TIME_WINDOW, 0);
-    err |= lis3dh->dev.write(REG_ACT_THS, 0);
-    err |= lis3dh->dev.write(REG_ACT_DUR, 0);
+    err |= lis3dh->dev.write(REG_CTRL_REG0, 0x10);
+    err |= lis3dh->dev.write(REG_CTRL_REG1, 0x07);
+    err |= lis3dh->dev.write(REG_CTRL_REG2, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG3, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG4, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG5, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG6, 0x00);
+    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, 0x00);
+    err |= lis3dh->dev.write(REG_INT1_CFG, 0x00);
+    err |= lis3dh->dev.write(REG_INT1_THS, 0x00);
+    err |= lis3dh->dev.write(REG_INT1_DURATION, 0x00);
+    err |= lis3dh->dev.write(REG_INT2_CFG, 0x00);
+    err |= lis3dh->dev.write(REG_INT2_THS, 0x00);
+    err |= lis3dh->dev.write(REG_INT2_DURATION, 0x00);
+    err |= lis3dh->dev.write(REG_CLICK_CFG, 0x00);
+    err |= lis3dh->dev.write(REG_CLICK_THS, 0x00);
+    err |= lis3dh->dev.write(REG_TIME_LIMIT, 0x00);
+    err |= lis3dh->dev.write(REG_TIME_LATENCY, 0x00);
+    err |= lis3dh->dev.write(REG_TIME_WINDOW, 0x00);
+    err |= lis3dh->dev.write(REG_ACT_THS, 0x00);
+    err |= lis3dh->dev.write(REG_ACT_DUR, 0x00);
     
     return err;
 }
@@ -77,7 +77,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     int err = 0;
 
     /* last 0b111 enables Z, Y and X axis */
-    ctrl_reg1 = 0 | (lis3dh->cfg.rate << 4) | 0b111;
+    ctrl_reg1 = 0 | (lis3dh->cfg.rate << 4) | 0x07;
     ctrl_reg2 = 0;
     ctrl_reg4 = 0 | (lis3dh->cfg.range << 4);
     ctrl_reg5 = 0;
@@ -93,8 +93,8 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 
     /* set enable filter */
     if (lis3dh->cfg.filter.mode != 0xFF) {
-        ctrl_reg2 |= ((lis3dh->cfg.filter.mode & 0b11) << 6);
-        ctrl_reg2 |= ((lis3dh->cfg.filter.cutoff & 0b11) << 4);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.mode & 0x03) << 6);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.cutoff & 0x03) << 4);
         ctrl_reg2 |= ((lis3dh->cfg.filter.fds & 1) << 3);
         ctrl_reg2 |= ((lis3dh->cfg.filter.hpclick & 1) << 2);
         ctrl_reg2 |= ((lis3dh->cfg.filter.ia1 & 1) << 1);
@@ -111,7 +111,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 
     /* set LPen */
     if (lis3dh->cfg.mode == LIS3DH_MODE_LP) {
-        ctrl_reg1 |= 0b1000;
+        ctrl_reg1 |= 0x08;
     }
 
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);

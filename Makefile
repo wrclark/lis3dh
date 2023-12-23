@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O2 -std=gnu99 -W -Werror -Wall -Wextra -I. 
+CFLAGS=-O2 -std=c99 -W -Werror -Wall -Wextra -pedantic -I. 
 LFLAGS=-lm
 all:
 	$(CC) $(CFLAGS) main.c i2c.c lis3dh.c -o lis3dh $(LFLAGS)
