@@ -38,7 +38,11 @@ int i2c_init(void) {
 
 
 int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
-	uint8_t cmd[2] = {reg, 0x00};
+	uint8_t cmd[2];
+
+	cmd[0] = reg;
+	cmd[1] = 0x00;
+
 	write(fd, cmd, 2);
 	
 	if (read(fd, dst, size) != (ssize_t)size) {
@@ -52,7 +56,10 @@ int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
 
 
 int i2c_write(uint8_t reg, uint8_t value) {
-	uint8_t cmd[2] = {reg, value};
+	uint8_t cmd[2];
+
+	cmd[0] = reg;
+	cmd[1] = value;
 	
 	if (write(fd, cmd, 2) != 2) {
 		fprintf(stderr, "error write()\n");

@@ -22,6 +22,7 @@ int main() {
 
     lis3dh_t lis;
     struct lis3dh_fifo_data fifo;
+    int i, k;
 
     /* set fn ptrs to rw on bus (i2c or SPI) */
     lis.dev.init = i2c_init;
@@ -47,7 +48,7 @@ int main() {
         quit("configure()", &lis);
     }
 
-    for (int i=0; i<50; i++) {
+    for (i=0; i<50; i++) {
     
         /* poll fifo reg */
         if (lis3dh_poll_fifo(&lis)) {
@@ -59,7 +60,7 @@ int main() {
             quit("read_fifo()", &lis);
         }
 
-        for(int k=0; k<fifo.size; k++) {
+        for(k=0; k<fifo.size; k++) {
             printf("x: %04.04f, y: %04.04f, z: %04.04f mag: %04.04f\n",
                 fifo.x[k], fifo.y[k], fifo.z[k],
                 mag(fifo.x[k], fifo.y[k], fifo.z[k]));
