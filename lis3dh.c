@@ -59,7 +59,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.fifo.fth = 32; /* default watermark level. */
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.cutoff = 0;
-    lis3dh->cfg.filter.fds = 0;
+    lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
     lis3dh->cfg.filter.hpclick = 0;
     lis3dh->cfg.filter.ia1 = 0;
     lis3dh->cfg.filter.ia2 = 0;
@@ -221,9 +221,8 @@ static uint8_t acc_sensitivity(lis3dh_t *lis3dh) {
 }
 
 int lis3dh_read(lis3dh_t *lis3dh) {
-
     uint8_t data[6];
-    int16_t x, y, z;
+    int32_t x, y, z;
     uint8_t scale, sens;
     int err = 0;
 
@@ -247,8 +246,7 @@ int lis3dh_read(lis3dh_t *lis3dh) {
 }
 
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
-
-    int16_t x, y, z;
+    int32_t x, y, z;
     uint8_t scale, sens;
     uint8_t data[192]; /* max size */
     int err = 0;
@@ -257,14 +255,15 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     scale = acc_shift(lis3dh);
     sens = acc_sensitivity(lis3dh);
 
-    fifo->size = lis3dh->cfg.fifo.fth;
+    /* fifo buffer is max 32 */
+    fifo->size = lis3dh->cfg.fifo.fth > 32 ? 32 : lis3dh->cfg.fifo.fth;
 
     /* must set MSbit of the address to multi-read and 
        have the device auto-increment the address.
        see 5.1.5 in datasheet. */
     err |= lis3dh->dev.read(REG_OUT_X_L | 0x80, data, 192);
 
-    for(i=0, idx=0; i<lis3dh->cfg.fifo.fth * 6; i+=6, idx++) {
+    for (i=0, idx=0; i<fifo->size * 6; i+=6, idx++) {
         x = (((int16_t)((data[i + 0] << 8) | data[i + 1])) >> scale) * sens;
         y = (((int16_t)((data[i + 2] << 8) | data[i + 3])) >> scale) * sens;
         z = (((int16_t)((data[i + 4] << 8) | data[i + 5])) >> scale) * sens;
