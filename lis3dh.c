@@ -58,7 +58,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.mode = 0;
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.trig = 0;
-    lis3dh->cfg.fifo.fth = 0;
+    lis3dh->cfg.fifo.fth = 32; /* default watermark level. */
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.cutoff = 0;
     lis3dh->cfg.filter.fds = 0;
@@ -248,44 +248,33 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     return err;
 }
 
-static double mag(double x, double y, double z) {
-    return sqrt( powf(x, 2) + powf(y, 2) + powf(z, 2) );
-}
-
-int lis3dh_read_fifo(lis3dh_t *lis3dh) {
+int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
 
     int16_t x, y, z;
     uint8_t scale, sens;
-    uint8_t data[192];
+    uint8_t data[192]; /* max size */
     int err = 0;
+    int i, idx;
 
     scale = acc_shift(lis3dh);
     sens = acc_sensitivity(lis3dh);
+
+    fifo->size = lis3dh->cfg.fifo.fth;
 
     /* must set MSbit of the address to multi-read and 
        have the device auto-increment the address.
        see 5.1.5 in datasheet. */
     err |= lis3dh->dev.read(REG_OUT_X_L | 0x80, data, 192);
 
-    puts("FIFO =>");
-
-    for(int i=0; i<192; i+=6) {
+    for(i=0, idx=0; i<lis3dh->cfg.fifo.fth * 6; i+=6, idx++) {
         x = (((int16_t)((data[i + 0] << 8) | data[i + 1])) >> scale) * sens;
         y = (((int16_t)((data[i + 2] << 8) | data[i + 3])) >> scale) * sens;
         z = (((int16_t)((data[i + 4] << 8) | data[i + 5])) >> scale) * sens;
 
-        double dx = ((double)x) / 1000.0;
-        double dy = ((double)y) / 1000.0;
-        double dz = ((double)z) / 1000.0;
-
-        printf("x: %04.04f, y: %04.04f, z: %04.04f mag:%f\n", 
-            dx,
-            dy,
-            dz,
-            mag(dx, dy, dz));
+        fifo->x[idx] = ((float)x) / 1000.0;
+        fifo->y[idx] = ((float)y) / 1000.0;
+        fifo->z[idx] = ((float)z) / 1000.0;
     }
-
-    puts("<= FIFO");
 
     return err;
 }

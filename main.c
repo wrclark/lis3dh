@@ -5,16 +5,14 @@
 #include "lis3dh.h"
 #include "i2c.h"
 
-double accel_mag(lis3dh_t *lis) {
-    double d = 0.0;
-
-    d = sqrt( powf(lis->acc.x, 2) + powf(lis->acc.y, 2) + powf(lis->acc.z, 2));
-    return d;
+float mag(float x, float y, float z) {
+    return sqrt( powf(x, 2) + powf(y, 2) + powf(z, 2) );
 }
 
 int main() {
 
     lis3dh_t lis;
+    struct lis3dh_fifo_data fifo;
 
     lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
@@ -29,40 +27,30 @@ int main() {
     }
 
     lis.cfg.mode = LIS3DH_MODE_HR;
-    lis.cfg.range = LIS3DH_FS_4G;
-    lis.cfg.rate = LIS3DH_ODR_25_HZ;
+    lis.cfg.range = LIS3DH_FS_2G;
+    lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
- //lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
-    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
-    lis.cfg.filter.fds = 1;
 
     if (lis3dh_configure(&lis)) {
         puts("configure ERR");
     }
 
-/*
     for(int i=0; i<100; i++) {
-        if (lis3dh_poll(&lis)) {
-            puts("poll ERR");
+    
+        if (lis3dh_poll_fifo(&lis)) {
+            puts("poll_fifo ERR");
         }
 
-        if (lis3dh_read(&lis)) {
-            puts("read ERR");
+        if (lis3dh_read_fifo(&lis, &fifo)) {
+            puts("read_fifo ERR");
         }
 
-        printf("x: % 04.04f g, y: % 04.04f g, z: % 04.04f g, mag:% 04.04f\n",
-            lis.acc.x, lis.acc.y, lis.acc.z, accel_mag(&lis));
-    }
-    */
-
-    /* FIFO test */
-    if (lis3dh_poll_fifo(&lis)) {
-        puts("poll_fifo ERR");
-    }
-
-    if (lis3dh_read_fifo(&lis)) {
-        puts("read_fifo ERR");
-    }
+        for(int k=0; k<fifo.size; k++) {
+            printf("x: %04.04f, y: %04.04f, z: %04.04f mag: %04.04f\n",
+                fifo.x[k], fifo.y[k], fifo.z[k],
+                mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+        }
+   }
     
     if (lis3dh_deinit(&lis)) {
         puts("deinit ERR");

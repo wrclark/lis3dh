@@ -100,12 +100,22 @@ struct lis3dh {
 
 typedef struct lis3dh lis3dh_t;
 
+/* struct for containing the FIFO data */
+struct lis3dh_fifo_data {
+    uint8_t size; /* up to 32 */
+    float x[32];
+    float y[32];
+    float z[32];
+};
+
 int lis3dh_init(lis3dh_t *lis3dh);
 int lis3dh_deinit(lis3dh_t *lis3dh);
 int lis3dh_configure(lis3dh_t *lis3dh);
 int lis3dh_poll(lis3dh_t *lis3dh);
 int lis3dh_read(lis3dh_t *lis3dh);
 int lis3dh_poll_fifo(lis3dh_t *lis3dh);
-int lis3dh_read_fifo(lis3dh_t *lis3dh);
+int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
+
+
 
 #endif
