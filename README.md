@@ -49,6 +49,10 @@ x: 0.5480, y: -0.8800, z: -0.0720 mag: 1.0392
 x: 0.5480, y: -0.8800, z: -0.0800 mag: 1.0398
 x: 0.5480, y: -0.8960, z: -0.0960 mag: 1.0547
 ```
+
+> ### Notes
+> FIFO is always and only 10-bit
+
 ### Noise at 2G
 ![DC noise at 2G](.gitea/graph-2g.png)
 

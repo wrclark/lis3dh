@@ -294,8 +294,19 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     int err = 0;
     int i, idx;
 
-    scale = acc_shift(lis3dh);
-    sens = acc_sensitivity(lis3dh);
+    /* FIFO is always 10-bit */
+    scale = 6;
+
+    /* normal mode */
+    if (lis3dh->cfg.range == LIS3DH_FS_2G) {
+        sens = 4;
+    } else if (lis3dh->cfg.range == LIS3DH_FS_4G) {
+        sens = 8;
+    } else if (lis3dh->cfg.range == LIS3DH_FS_8G) {
+        sens = 16;
+    } else { /* 16G */
+        sens = 48;
+    }
 
     /* fifo buffer is max 32 */
     fifo->size = lis3dh->cfg.fifo.fth > 32 ? 32 : lis3dh->cfg.fifo.fth;
