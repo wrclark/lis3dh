@@ -53,17 +53,23 @@ x: 0.5480, y: -0.8960, z: -0.0960 mag: 1.0547
 > ### Notes
 > FIFO is always and only 10-bit
 
+
 ### Noise at 2G
 ![DC noise at 2G](.gitea/graph-2g.png)
 
+![DC noise at 2G](.gitea/graph-2g-filter.png)
 ### Noise at 4G
 ![DC noise at 4G](.gitea/graph-4g.png)
 
+![DC noise at 2G](.gitea/graph-4g-filter.png)
 ### Noise at 8G
 ![DC noise at 8G](.gitea/graph-8g.png)
 
+![DC noise at 2G](.gitea/graph-8g-filter.png)
 ### Noise at 16G
 ![DC noise at 16G](.gitea/graph-16g.png)
+
+![DC noise at 2G](.gitea/graph-16g-filter.png)
 
 ## Using i2c on STM32
 Simple example code
