@@ -27,41 +27,41 @@ Simple example:
 
 int main() {
     
-	lis3dh_t lis;
+    lis3dh_t lis;
 
-	lis.dev.init = i2c_init;
+    lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
     lis.dev.write = i2c_write;
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
-	if (lis3dh_init(&lis)) {
+    if (lis3dh_init(&lis)) {
         /* error handling */
     }
 
-	lis.cfg.mode = LIS3DH_MODE_HR;
+    lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_4G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
 
-	if (lis3dh_configure(&lis)) {
+    if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
-	if (lis3dh_poll(&lis)) {
+    if (lis3dh_poll(&lis)) {
         /* error handling */
-	}
+    }
 
-	if (lis3dh_read(&lis)) {
+    if (lis3dh_read(&lis)) {
         /* error handling */
-	}
+    }
 
-	printf("x: %f, y: %f, z: %f\n", lis.acc.x, lis.acc.y, lis.acc.z);
+    printf("x: %f, y: %f, z: %f\n", lis.acc.x, lis.acc.y, lis.acc.z);
 
-	if (lis3dh_deinit(&lis)) {
+    if (lis3dh_deinit(&lis)) {
         /* error handling */
-	}
+    }
 
-	return 0;
+    return 0;
 }
 ```
 The output should be something similar to this:
@@ -79,24 +79,24 @@ poll() and read() can be indefinitely looped for a constant data stream, like th
 
 int main() {
 
-	lis3dh_t lis;
+    lis3dh_t lis;
     int i;
 
-	lis.dev.init = i2c_init;
+    lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
     lis.dev.write = i2c_write;
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
-	if (lis3dh_init(&lis)) {
+    if (lis3dh_init(&lis)) {
         /* error handling */
     }
 
-	lis.cfg.mode = LIS3DH_MODE_HR;
+    lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_4G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
 
-	if (lis3dh_configure(&lis)) {
+    if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
@@ -104,20 +104,20 @@ int main() {
 
         if (lis3dh_poll(&lis)) {
             /* error handling */
-	    }
+        }
 
-	    if (lis3dh_read(&lis)) {
+        if (lis3dh_read(&lis)) {
             /* error handling */
-	    }
+        }
 
         printf("x: %f, y: %f, z: %f\n", lis.acc.x, lis.acc.y, lis.acc.z);
     }
 
-	if (lis3dh_deinit(&lis)) {
+    if (lis3dh_deinit(&lis)) {
         /* error handling */
-	}
+    }
 
-	return 0;
+    return 0;
 }
 ```
 Output:
@@ -147,26 +147,26 @@ It should be noted that all FIFO readings use 10-bit resolution regardless of th
 
 int main() {
 
-	lis3dh_t lis;
+    lis3dh_t lis;
     struct lis3dh_fifo_data data;
     int i;
 
-	lis.dev.init = i2c_init;
+    lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
     lis.dev.write = i2c_write;
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
-	if (lis3dh_init(&lis)) {
+    if (lis3dh_init(&lis)) {
         /* error handling */
     }
 
-	lis.cfg.mode = LIS3DH_MODE_HR;
+    lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_4G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
 
-	if (lis3dh_configure(&lis)) {
+    if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
@@ -183,11 +183,11 @@ int main() {
         printf("x: %f, y: %f, z: %f\n", data.x[i], data.y[i], data.z[i]);
     }
 
-	if (lis3dh_deinit(&lis)) {
+    if (lis3dh_deinit(&lis)) {
         /* error handling */
-	}
+    }
 
-	return 0;
+    return 0;
 }
 ```
 Output:
@@ -237,28 +237,28 @@ The LIS3DH can optionally apply a HP filter on the sample data. It can be used t
 
 int main() {
 
-	lis3dh_t lis;
+    lis3dh_t lis;
     struct lis3dh_fifo_data data;
     int i;
 
-	lis.dev.init = i2c_init;
+    lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
     lis.dev.write = i2c_write;
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
-	if (lis3dh_init(&lis)) {
+    if (lis3dh_init(&lis)) {
         /* error handling */
     }
 
-	lis.cfg.mode = LIS3DH_MODE_HR;
+    lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_4G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
 
-	if (lis3dh_configure(&lis)) {
+    if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
@@ -275,11 +275,11 @@ int main() {
         printf("x: %f, y: %f, z: %f\n", data.x[i], data.y[i], data.z[i]);
     }
 
-	if (lis3dh_deinit(&lis)) {
+    if (lis3dh_deinit(&lis)) {
         /* error handling */
-	}
+    }
 
-	return 0;
+    return 0;
 }
 ```
 Output:
@@ -325,16 +325,16 @@ Simple example code
 #define LIS3DH_I2C_ADDR 0x18
 
 int i2c_write(uint8_t reg, uint8_t value) {
-	uint8_t buf[2] = { reg, value };
-	HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, buf, 2, HAL_MAX_DELAY);
-	return 0;
+    uint8_t buf[2] = { reg, value };
+    HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, buf, 2, HAL_MAX_DELAY);
+    return 0;
 }
 
 int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
-	uint8_t send[2] = { reg, 0x00 };
-	HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, send, 2, HAL_MAX_DELAY);
-	HAL_I2C_Master_Receive(&hi2c2, LIS3DH_I2C_ADDR << 1, dst, size, HAL_MAX_DELAY);
-	return 0;
+    uint8_t send[2] = { reg, 0x00 };
+    HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, send, 2, HAL_MAX_DELAY);
+    HAL_I2C_Master_Receive(&hi2c2, LIS3DH_I2C_ADDR << 1, dst, size, HAL_MAX_DELAY);
+    return 0;
 }
 ```
 
