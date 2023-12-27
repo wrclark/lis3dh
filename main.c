@@ -38,7 +38,7 @@ int main() {
     }
 
     /* set up config */
-    lis.cfg.mode = LIS3DH_MODE_HR;
+    lis.cfg.mode = LIS3DH_MODE_NORMAL;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
@@ -48,7 +48,7 @@ int main() {
         quit("configure()", &lis);
     }
 
-    for (i=0; i<50; i++) {
+    for (i=0; i<100; i++) {
     
         /* poll fifo reg */
         if (lis3dh_poll_fifo(&lis)) {
@@ -61,7 +61,7 @@ int main() {
         }
 
         for(k=0; k<fifo.size; k++) {
-            printf("x: %04.04f, y: %04.04f, z: %04.04f mag: %04.04f\n",
+            printf("%04.04f %04.04f %04.04f %04.04f\n",
                 fifo.x[k], fifo.y[k], fifo.z[k],
                 mag(fifo.x[k], fifo.y[k], fifo.z[k]));
         }
