@@ -12,9 +12,23 @@ A C89 driver for the 3-axis accelerometer LIS3DH. Supports both i2c and SPI.
 > - Single and double click detection (soon)
 > - 4D/6D orientation detection (soon)
 
-> ### Notes
-> FIFO is always and only 10-bit
+## Implementation
+This driver requires the user to provide pointers to the following abstractely named functions:
 
+This project has example interface code for I2C used on Raspberry Pi.
+```c
+/* initialise the "interface" */
+int init(void);
+/* read from device register `reg`, `size` amount of bytes and write them to `dst` */
+int read(uint8_t reg, uint8_t *dst, uint32_t size);
+/* write `value` to device register `reg` */
+int write(uint8_t reg, uint8_t value);
+/* sleep for `dur_us` microseconds */
+int sleep(uint32_t dur_us);
+/* deinitalise the "interface" */
+int deinit(void);
+```
+All above functions return `0` on success.
 
 ## Usage
 Simple example:
@@ -137,7 +151,8 @@ x: 0.516000, y: -0.852000, z: -0.112000
 ## Using FIFO
 Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used like such:
 
-It should be noted that all FIFO readings use 10-bit resolution regardless of the mode. The watermark level can also be adjusted to a value [0-32] inclusive by modifying the `lis.cfg.fifo.fth` property before calling configure().
+All FIFO readings use 10-bit resolution regardless of the mode set in `lis.cfg.mode`.
+The watermark level can also be adjusted to a value [0-32] inclusive by modifying the `lis.cfg.fifo.fth` property before calling configure().
 ```c
 #define _GNU_SOURCE
 #include <unistd.h>
