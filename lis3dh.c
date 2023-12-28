@@ -67,20 +67,20 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.filter.ia1 = 0;
     lis3dh->cfg.filter.ia2 = 0;
 
-    lis3dh->cfg.pin1.click = 0;
-    lis3dh->cfg.pin1.ia1 = 0;
-    lis3dh->cfg.pin1.ia2 = 0;
-    lis3dh->cfg.pin1.drdy_zyxda = 0;
-    lis3dh->cfg.pin1.drdy_321 = 0;
-    lis3dh->cfg.pin1.wtm = 0;
-    lis3dh->cfg.pin1.overrun = 0;
+    lis3dh->cfg.int1.click = 0;
+    lis3dh->cfg.int1.ia1 = 0;
+    lis3dh->cfg.int1.ia2 = 0;
+    lis3dh->cfg.int1.drdy_zyxda = 0;
+    lis3dh->cfg.int1.drdy_321 = 0;
+    lis3dh->cfg.int1.wtm = 0;
+    lis3dh->cfg.int1.overrun = 0;
 
-    lis3dh->cfg.pin2.click = 0;
-    lis3dh->cfg.pin2.ia1 = 0;
-    lis3dh->cfg.pin2.ia2 = 0;
-    lis3dh->cfg.pin2.boot = 0;
-    lis3dh->cfg.pin2.act = 0;
-    lis3dh->cfg.pin2.polarity = 0;
+    lis3dh->cfg.int2.click = 0;
+    lis3dh->cfg.int2.ia1 = 0;
+    lis3dh->cfg.int2.ia2 = 0;
+    lis3dh->cfg.int2.boot = 0;
+    lis3dh->cfg.int2.act = 0;
+    lis3dh->cfg.int2.polarity = 0;
 
     err |= lis3dh_reset(lis3dh);
 
@@ -103,21 +103,21 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg6 = 0;
     fifo_ctrl_reg = 0;
 
-    /* set pin interrupt settings */
-    ctrl_reg3 |= (lis3dh->cfg.pin1.click & 1) << 7;
-    ctrl_reg3 |= (lis3dh->cfg.pin1.ia1 & 1) << 6;
-    ctrl_reg3 |= (lis3dh->cfg.pin1.ia2 & 1) << 5;
-    ctrl_reg3 |= (lis3dh->cfg.pin1.drdy_zyxda & 1) << 4;
-    ctrl_reg3 |= (lis3dh->cfg.pin1.drdy_321 & 1) << 3;
-    ctrl_reg3 |= (lis3dh->cfg.pin1.wtm & 1) << 2;
-    ctrl_reg3 |= (lis3dh->cfg.pin1.overrun & 1) << 1;
+    /* set interrupt registers */
+    ctrl_reg3 |= (lis3dh->cfg.int1.click & 1) << 7;
+    ctrl_reg3 |= (lis3dh->cfg.int1.ia1 & 1) << 6;
+    ctrl_reg3 |= (lis3dh->cfg.int1.ia2 & 1) << 5;
+    ctrl_reg3 |= (lis3dh->cfg.int1.drdy_zyxda & 1) << 4;
+    ctrl_reg3 |= (lis3dh->cfg.int1.drdy_321 & 1) << 3;
+    ctrl_reg3 |= (lis3dh->cfg.int1.wtm & 1) << 2;
+    ctrl_reg3 |= (lis3dh->cfg.int1.overrun & 1) << 1;
 
-    ctrl_reg6 |= (lis3dh->cfg.pin2.click & 1) << 7;
-    ctrl_reg6 |= (lis3dh->cfg.pin2.ia1 & 1) << 6;
-    ctrl_reg6 |= (lis3dh->cfg.pin2.ia2 & 1) << 5;
-    ctrl_reg6 |= (lis3dh->cfg.pin2.boot & 1) << 4;
-    ctrl_reg6 |= (lis3dh->cfg.pin2.act & 1) << 3;
-    ctrl_reg6 |= (lis3dh->cfg.pin2.polarity & 1) << 1;
+    ctrl_reg6 |= (lis3dh->cfg.int2.click & 1) << 7;
+    ctrl_reg6 |= (lis3dh->cfg.int2.ia1 & 1) << 6;
+    ctrl_reg6 |= (lis3dh->cfg.int2.ia2 & 1) << 5;
+    ctrl_reg6 |= (lis3dh->cfg.int2.boot & 1) << 4;
+    ctrl_reg6 |= (lis3dh->cfg.int2.act & 1) << 3;
+    ctrl_reg6 |= (lis3dh->cfg.int2.polarity & 1) << 1;
 
     /* set enable FIFO */
     if (lis3dh->cfg.fifo.mode != 0xFF) {

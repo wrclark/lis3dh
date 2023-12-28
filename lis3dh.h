@@ -63,7 +63,7 @@ struct lis3dh_device {
 	int (*deinit)(void);
 };
 
-struct lis3dh_pin2_config {
+struct lis3dh_int2_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
     uint8_t ia2; /* IA2 interrupt */
@@ -72,7 +72,7 @@ struct lis3dh_pin2_config {
     uint8_t polarity; /* INT1 & INT2 polarity. 0 active high, 1 active low */
 };
 
-struct lis3dh_pin1_config {
+struct lis3dh_int1_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
     uint8_t ia2; /* IA2 interrupt */
@@ -103,8 +103,8 @@ struct lis3dh_config {
     uint8_t mode; /* LPen and HR */
     struct lis3dh_fifo_config fifo;
     struct lis3dh_filter_config filter;
-    struct lis3dh_pin1_config pin1;
-    struct lis3dh_pin2_config pin2;
+    struct lis3dh_int1_config int1;
+    struct lis3dh_int2_config int2;
 };
 
 struct lis3dh_acceleration {
