@@ -4,7 +4,10 @@
 #include <unistd.h>
 #include <math.h>
 #include "lis3dh.h"
+#include "interrupt.h"
 #include "i2c.h"
+
+#define GPIO_INTERRUPT_PIN 12
 
 /* calc magnitude of accel [x y z] vector */
 float mag(float x, float y, float z) {
@@ -14,6 +17,7 @@ float mag(float x, float y, float z) {
 /* print message then exit */
 void quit(const char *msg, lis3dh_t *lis) {
     lis->dev.deinit();
+    int_unregister(GPIO_INTERRUPT_PIN);
     fprintf(stderr, "%s\n", msg);
     exit(1);
 }
@@ -22,7 +26,7 @@ int main() {
 
     lis3dh_t lis;
     struct lis3dh_fifo_data fifo;
-    int i, k;
+    int k;
 
     /* set fn ptrs to rw on bus (i2c or SPI) */
     lis.dev.init = i2c_init;
@@ -37,34 +41,44 @@ int main() {
         quit("init()", &lis);
     }
 
+    /* register interrupt */
+    if (int_register(GPIO_INTERRUPT_PIN)) {
+        quit("int_register()", &lis);
+    }
+
     /* set up config */
     lis.cfg.mode = LIS3DH_MODE_NORMAL;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
+    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1;
+    lis.cfg.pin1.overrun = 1;
+    
 
     /* write device config */
     if (lis3dh_configure(&lis)) {
         quit("configure()", &lis);
     }
-
-    for (i=0; i<100; i++) {
     
-        /* poll fifo reg */
-        if (lis3dh_poll_fifo(&lis)) {
-            quit("poll_fifo()", &lis);
-        }
+    /* wait for interrupt from LIS3DH */
+    if (int_poll(GPIO_INTERRUPT_PIN)) {
+        quit("int_poll()", &lis);
+    }
 
-        /* read stored fifo data into `fifo' struct */
-        if (lis3dh_read_fifo(&lis, &fifo)) {
-            quit("read_fifo()", &lis);
-        }
+    /* read stored fifo data into `fifo' struct */
+    if (lis3dh_read_fifo(&lis, &fifo)) {
+        quit("read_fifo()", &lis);
+    }
 
-        for(k=0; k<fifo.size; k++) {
-            printf("%04.04f %04.04f %04.04f %04.04f\n",
-                fifo.x[k], fifo.y[k], fifo.z[k],
-                mag(fifo.x[k], fifo.y[k], fifo.z[k]));
-        }
+    for(k=0; k<fifo.size; k++) {
+        printf("%04.04f %04.04f %04.04f %04.04f\n",
+            fifo.x[k], fifo.y[k], fifo.z[k],
+            mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+    }
+    
+    /* unregister interrupt */
+    if (int_unregister(GPIO_INTERRUPT_PIN)) {
+        quit("int_unregister()", &lis);
     }
 
     /* deinitalise struct */
