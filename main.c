@@ -52,7 +52,7 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1;
-    lis.cfg.int1.overrun = 1;
+    lis.cfg.int1.wtm = 1;
     
 
     /* write device config */

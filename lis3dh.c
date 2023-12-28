@@ -58,7 +58,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.trig = 0;
-    lis3dh->cfg.fifo.fth = 32; /* default watermark level. */
+    lis3dh->cfg.fifo.fth = 31; /* default watermark level. */
 
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.cutoff = 0;

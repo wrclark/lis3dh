@@ -7,7 +7,7 @@ A C89 driver for the 3-axis accelerometer LIS3DH. Supports both i2c and SPI.
 > - HP filter (4 c/o freq)
 > - 2G, 4G, 8G and 16G
 > - All power modes
-> - Interrupt generation (soon)
+> - Interrupt generation (partial)
 > - Free-fall detection (soon)
 > - Single and double click detection (soon)
 > - 4D/6D orientation detection (soon)
@@ -152,7 +152,7 @@ x: 0.516000, y: -0.852000, z: -0.112000
 Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used like such:
 
 All FIFO readings use 10-bit resolution regardless of the mode set in `lis.cfg.mode`.
-The watermark level can also be adjusted to a value [0-32] inclusive by modifying the `lis.cfg.fifo.fth` property before calling configure().
+The watermark level can also be adjusted to a value [0-31] inclusive by modifying the `lis.cfg.fifo.fth` property before calling configure().
 ```c
 #define _GNU_SOURCE
 #include <unistd.h>
@@ -332,6 +332,116 @@ x: -0.016000, y: -0.032000, z: -0.040000
 x: -0.016000, y: -0.032000, z: -0.040000
 x: -0.016000, y: -0.032000, z: -0.040000
 x: -0.008000, y: -0.024000, z: -0.008000
+```
+## Using interrupts
+
+The LIS3DH supports two different interrupt "output pins," `INT1` and `INT2`. The appropriate flag must be set in either `cfg.int1` or `cfg.int2` (only one of such flags can be set at a time!) and the interrupt source must be configured to trigger into `INT1` or `INT2`. Below is example code that listens and receives an interrupt when the FIFO watermark is reached i.e. it is full.
+
+```c
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <math.h>
+#include "lis3dh.h"
+#include "interrupt.h"
+#include "i2c.h"
+
+/* GPIO 12 or Pin 32 */
+#define GPIO_INTERRUPT_PIN 12
+
+int main() {
+
+    lis3dh_t lis;
+    struct lis3dh_fifo_data fifo;
+    int k;
+
+    lis.dev.init = i2c_init;
+    lis.dev.read = i2c_read;
+    lis.dev.write = i2c_write;
+    lis.dev.sleep = usleep;
+    lis.dev.deinit = i2c_deinit;
+
+    if (lis3dh_init(&lis)) {
+        /* error handling */
+    }
+
+    /* register interrupt */
+    if (int_register(GPIO_INTERRUPT_PIN)) {
+        /* error handling */
+    }
+
+    lis.cfg.mode = LIS3DH_MODE_NORMAL;
+    lis.cfg.range = LIS3DH_FS_2G;
+    lis.cfg.rate = LIS3DH_ODR_100_HZ;
+    lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
+    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger into INT1 */
+    lis.cfg.int1.wtm = 1; /* trigger upon watermark level reached */
+    
+    if (lis3dh_configure(&lis)) {
+       /* error handling */
+    }
+    
+    /* wait for interrupt from LIS3DH */
+    if (int_poll(GPIO_INTERRUPT_PIN)) {
+        /* error handling */
+    }
+
+    if (lis3dh_read_fifo(&lis, &fifo)) {
+       /* error handling */
+    }
+
+    for(k=0; k<fifo.size; k++) {
+        printf("%04.04f %04.04f %04.04f %04.04f\n", fifo.x[k], fifo.y[k], fifo.z[k]);
+    }
+    
+    /* unregister interrupt */
+    if (int_unregister(GPIO_INTERRUPT_PIN)) {
+        /* error handling */
+    }
+
+    if (lis3dh_deinit(&lis)) {
+        /* error handling */
+    }
+
+    return 0;
+}
+```
+
+Output:
+```
+$ ./lis3dh 
+0.2040 -1.0120 -0.1720 1.0466
+0.2200 -1.0200 -0.1600 1.0557
+0.2160 -1.0200 -0.1600 1.0548
+0.2120 -1.0240 -0.1600 1.0579
+0.2200 -1.0160 -0.1760 1.0543
+0.2080 -0.9960 -0.1720 1.0319
+0.2080 -0.9960 -0.1760 1.0326
+0.2200 -1.0200 -0.1600 1.0557
+0.2200 -1.0160 -0.1560 1.0512
+0.2160 -1.0200 -0.1600 1.0548
+0.2120 -1.0240 -0.1520 1.0567
+0.2200 -1.0240 -0.1520 1.0583
+0.2160 -1.0200 -0.1520 1.0536
+0.2160 -1.0200 -0.1560 1.0542
+0.2080 -0.9960 -0.1760 1.0326
+0.2200 -1.0240 -0.1600 1.0595
+0.2120 -1.0000 -0.1720 1.0366
+0.2120 -0.9960 -0.1760 1.0334
+0.2200 -1.0240 -0.1600 1.0595
+0.2200 -1.0200 -0.1600 1.0557
+0.2080 -0.9960 -0.1640 1.0306
+0.1920 -1.0080 -0.1600 1.0385
+0.2080 -1.0080 -0.1600 1.0416
+0.2200 -1.0240 -0.1520 1.0583
+0.2080 -1.0000 -0.1720 1.0358
+0.2080 -0.9960 -0.1480 1.0282
+0.2040 -1.0240 -0.1560 1.0557
+0.2200 -1.0240 -0.1560 1.0589
+0.2120 -1.0040 -0.1520 1.0373
+0.2120 -1.0200 -0.1560 1.0534
+0.2200 -1.0240 -0.1560 1.0589
 ```
 
 ### Using i2c on STM32
