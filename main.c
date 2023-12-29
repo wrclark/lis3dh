@@ -52,6 +52,7 @@ int main() {
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1;
     lis.cfg.int1.wtm = 1;
+    lis.cfg.int1.latch = 1;
     
 
     /* write device config */
@@ -62,6 +63,10 @@ int main() {
     /* wait for interrupt from LIS3DH */
     if (int_poll(GPIO_INTERRUPT_PIN)) {
         quit("int_poll()", &lis);
+    }
+
+    if (lis3dh_clear_int1(&lis)) {
+        quit("clear_int1()", &lis);
     }
 
     /* read stored fifo data into `fifo' struct */

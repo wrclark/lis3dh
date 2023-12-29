@@ -74,6 +74,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.int1.drdy_321 = 0;
     lis3dh->cfg.int1.wtm = 0;
     lis3dh->cfg.int1.overrun = 0;
+    lis3dh->cfg.int1.latch = 0;
 
     lis3dh->cfg.int2.click = 0;
     lis3dh->cfg.int2.ia1 = 0;
@@ -81,6 +82,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.int2.boot = 0;
     lis3dh->cfg.int2.act = 0;
     lis3dh->cfg.int2.polarity = 0;
+    lis3dh->cfg.int2.latch = 0;
 
     err |= lis3dh_reset(lis3dh);
 
@@ -118,6 +120,9 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg6 |= (lis3dh->cfg.int2.boot & 1) << 4;
     ctrl_reg6 |= (lis3dh->cfg.int2.act & 1) << 3;
     ctrl_reg6 |= (lis3dh->cfg.int2.polarity & 1) << 1;
+
+    ctrl_reg5 |= (lis3dh->cfg.int1.latch & 1) << 3;
+    ctrl_reg5 |= (lis3dh->cfg.int2.latch & 1) << 1;
 
     /* set enable FIFO */
     if (lis3dh->cfg.fifo.mode != 0xFF) {
@@ -331,4 +336,16 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
 
 int lis3dh_deinit(lis3dh_t *lis3dh) {
     return lis3dh->dev.deinit();
+}
+
+/* read INT1_SRC to clear latched INT1 irq */
+int lis3dh_clear_int1(lis3dh_t *lis3dh) {
+    uint8_t res;
+    return lis3dh->dev.read(REG_INT1_SRC, &res, 1);
+}
+
+/* read INT2_SRC to clear latched INT2 irq */
+int lis3dh_clear_int2(lis3dh_t *lis3dh) {
+    uint8_t res;
+    return lis3dh->dev.read(REG_INT2_SRC, &res, 1);
 }
