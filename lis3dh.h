@@ -70,7 +70,7 @@ struct lis3dh_int2_config {
     uint8_t boot; /* enable BOOT on pin 2 */
     uint8_t act; /* interrupt on activity */
     uint8_t polarity; /* INT1 & INT2 polarity. 0 active high, 1 active low */
-    uint8_t latch;
+    uint8_t latch;  /* latch interrupt until cleared */
 };
 
 struct lis3dh_int1_config {
@@ -81,7 +81,7 @@ struct lis3dh_int1_config {
     uint8_t drdy_321; /* not sure */
     uint8_t wtm; /* FIFO reached watermark level */
     uint8_t overrun; /* FIFO has overrun */
-    uint8_t latch;
+    uint8_t latch; /* latch interrupt until cleared */
 };
 
 struct lis3dh_filter_config {
@@ -140,6 +140,7 @@ int lis3dh_poll_fifo(lis3dh_t *lis3dh);
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
 int lis3dh_clear_int1(lis3dh_t *lis3dh);
 int lis3dh_clear_int2(lis3dh_t *lis3dh);
+int lis3dh_reference(lis3dh_t *lis3dh);
 
 
 

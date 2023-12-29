@@ -349,3 +349,10 @@ int lis3dh_clear_int2(lis3dh_t *lis3dh) {
     uint8_t res;
     return lis3dh->dev.read(REG_INT2_SRC, &res, 1);
 }
+
+/* read REFERENCE reg to reset HP filter in REFERENCE mode
+   it uses the --current-- acceleration as the base in the filter */
+int lis3dh_reference(lis3dh_t *lis3dh) {
+    uint8_t res;
+    return lis3dh->dev.read(REG_REFERENCE, &res, 1);
+}
