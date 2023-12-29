@@ -17,7 +17,6 @@ float mag(float x, float y, float z) {
 /* print message then exit */
 void quit(const char *msg, lis3dh_t *lis) {
     lis->dev.deinit();
-    int_unregister(GPIO_INTERRUPT_PIN);
     fprintf(stderr, "%s\n", msg);
     exit(1);
 }
