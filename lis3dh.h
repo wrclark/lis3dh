@@ -55,6 +55,7 @@
 #define LIS3DH_FILTER_CUTOFF_1 0x03 /* lowest freq */
 
 
+/* user provided functions, init and deinit can be set to NULL and won't be used */
 struct lis3dh_device {
 	int (*init)(void);
 	int (*read)(uint8_t reg, uint8_t *dst, uint32_t size);
@@ -63,6 +64,7 @@ struct lis3dh_device {
 	int (*deinit)(void);
 };
 
+/* config for INT2 trigger output */
 struct lis3dh_int2_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
@@ -73,6 +75,7 @@ struct lis3dh_int2_config {
     uint8_t latch;  /* latch interrupt until cleared */
 };
 
+/* config for INT1 trigger output */
 struct lis3dh_int1_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
@@ -84,6 +87,7 @@ struct lis3dh_int1_config {
     uint8_t latch; /* latch interrupt until cleared */
 };
 
+/* config for high-pass filter */
 struct lis3dh_filter_config {
     uint8_t mode; /* filter mode, reset behaviour */
     uint8_t cutoff; /* high-pass filter cutoff freq (~ ODR) */
@@ -93,6 +97,7 @@ struct lis3dh_filter_config {
     uint8_t ia1; /* enable filter for AOI func on INT 1 */
 };
 
+/* config for FIFO */
 struct lis3dh_fifo_config {
     uint8_t fth; /* user-specified watermark level 0-32 */
     uint8_t trig; /* pin to trigger when watermark/overrun occurs */
@@ -109,6 +114,7 @@ struct lis3dh_config {
     struct lis3dh_int2_config int2;
 };
 
+/* data read not from FIFO is put here */
 struct lis3dh_acceleration {
     float x;
     float y;
@@ -141,7 +147,5 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
 int lis3dh_clear_int1(lis3dh_t *lis3dh);
 int lis3dh_clear_int2(lis3dh_t *lis3dh);
 int lis3dh_reference(lis3dh_t *lis3dh);
-
-
 
 #endif

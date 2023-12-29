@@ -47,16 +47,13 @@ int lis3dh_init(lis3dh_t *lis3dh) {
         }
     }
 
+    /* check WHO_AM_I to equal to 0x33 */
     err |= lis3dh->dev.read(REG_WHO_AM_I, &result, 1);
     if (result != 0x33) {
        return 1;
     }
 
-    /* zero struct */
-    lis3dh->acc.x = 0.0;
-    lis3dh->acc.y = 0.0;
-    lis3dh->acc.z = 0.0;
-
+    /* zero device struct */
     lis3dh->cfg.rate = 0;
     lis3dh->cfg.range = 0;
     lis3dh->cfg.mode = 0;
@@ -65,29 +62,13 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     lis3dh->cfg.fifo.trig = 0;
     lis3dh->cfg.fifo.fth = 31; /* default watermark level. */
 
+    memset(&lis3dh->acc, 0, sizeof lis3dh->acc);
+    memset(&lis3dh->cfg.int1, 0, sizeof lis3dh->cfg.int1);
+    memset(&lis3dh->cfg.int2, 0, sizeof lis3dh->cfg.int2);
+    memset(&lis3dh->cfg.filter, 0, sizeof lis3dh->cfg.filter);
+
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
-    lis3dh->cfg.filter.cutoff = 0;
     lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
-    lis3dh->cfg.filter.click = 0;
-    lis3dh->cfg.filter.ia1 = 0;
-    lis3dh->cfg.filter.ia2 = 0;
-
-    lis3dh->cfg.int1.click = 0;
-    lis3dh->cfg.int1.ia1 = 0;
-    lis3dh->cfg.int1.ia2 = 0;
-    lis3dh->cfg.int1.drdy_zyxda = 0;
-    lis3dh->cfg.int1.drdy_321 = 0;
-    lis3dh->cfg.int1.wtm = 0;
-    lis3dh->cfg.int1.overrun = 0;
-    lis3dh->cfg.int1.latch = 0;
-
-    lis3dh->cfg.int2.click = 0;
-    lis3dh->cfg.int2.ia1 = 0;
-    lis3dh->cfg.int2.ia2 = 0;
-    lis3dh->cfg.int2.boot = 0;
-    lis3dh->cfg.int2.act = 0;
-    lis3dh->cfg.int2.polarity = 0;
-    lis3dh->cfg.int2.latch = 0;
 
     err |= lis3dh_reset(lis3dh);
 
