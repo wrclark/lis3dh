@@ -1,3 +1,5 @@
+#include <stddef.h>
+#include <string.h>
 #include "lis3dh.h"
 #include "registers.h"
 
@@ -38,8 +40,11 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     uint8_t result;
     int err = 0;
 
-    if (lis3dh->dev.init() != 0) {
-        return 1;
+    /* if init has been given, check it */
+    if (lis3dh->dev.init != NULL) {
+        if (lis3dh->dev.init() != 0) {
+            return 1;
+        }
     }
 
     err |= lis3dh->dev.read(REG_WHO_AM_I, &result, 1);
@@ -97,10 +102,10 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     int err = 0;
 
     /* the 0x07 enables Z, Y and X axis in that order */
-    ctrl_reg1 = 0 | (lis3dh->cfg.rate << 4) | 0x07;
+    ctrl_reg1 = (lis3dh->cfg.rate << 4) | 0x07;
     ctrl_reg2 = 0;
     ctrl_reg3 = 0;
-    ctrl_reg4 = 0 | (lis3dh->cfg.range << 4);
+    ctrl_reg4 = (lis3dh->cfg.range << 4);
     ctrl_reg5 = 0;
     ctrl_reg6 = 0;
     fifo_ctrl_reg = 0;
@@ -204,68 +209,27 @@ int lis3dh_poll_fifo(lis3dh_t *lis3dh) {
 /* the real size of the int you get back from reading the acc u16 
    depends on the power mode. 
    shift down the 16 bit word by this amount: */
-static uint8_t acc_shift(lis3dh_t *lis3dh) {
-    switch (lis3dh->cfg.mode) {
-        case LIS3DH_MODE_HR:
-            return 4; /* i12 */
-        case LIS3DH_MODE_NORMAL:
-            return 6; /* i10 */
-        case LIS3DH_MODE_LP:
-            return 8; /* i8 */
+static uint8_t acc_shift(uint8_t mode) {
+    switch (mode) {
+        case LIS3DH_MODE_HR:     return 4;  /* i12 */
+        case LIS3DH_MODE_NORMAL: return 6;  /* i10 */
+        case LIS3DH_MODE_LP:     return 8;  /* i8 */
+        default:                 return 0;
     }
-
-    return 0;
 }
 
 /* returns a scalar that when multiplied with axis reading
    turns it to a multiple of mg. */
-static uint8_t acc_sensitivity(lis3dh_t *lis3dh) {
-    uint8_t mode = lis3dh->cfg.mode;
-
-    switch (lis3dh->cfg.range) {
-        case LIS3DH_FS_2G:
-            if (mode == LIS3DH_MODE_LP) {
-                return 16;
-            } else if (mode == LIS3DH_MODE_NORMAL) {
-                return 4;
-            } else {
-                return 1;
-            }
-            break;
-
-        case LIS3DH_FS_4G:
-            if (mode == LIS3DH_MODE_LP) {
-                return 32;
-            } else if (mode == LIS3DH_MODE_NORMAL) {
-                return 8;
-            } else {
-                return 2;
-            }
-            break;
-
-        case LIS3DH_FS_8G:
-            if (mode == LIS3DH_MODE_LP) {
-                return 64;
-            } else if (mode == LIS3DH_MODE_NORMAL) {
-                return 16;
-            } else {
-                return 4;
-            }
-            break;
-
-        case LIS3DH_FS_16G:
-            if (mode == LIS3DH_MODE_LP) {
-                return 192;
-            } else if (mode == LIS3DH_MODE_NORMAL) {
-                return 48;
-            } else {
-                return 12;
-            }
-            break;
+static uint8_t acc_sensitivity(uint8_t mode, uint8_t range) {
+    switch (range) {
+        case LIS3DH_FS_2G:    return (mode == LIS3DH_MODE_LP) ? 16  : (mode == LIS3DH_MODE_NORMAL) ? 4  : 1;
+        case LIS3DH_FS_4G:    return (mode == LIS3DH_MODE_LP) ? 32  : (mode == LIS3DH_MODE_NORMAL) ? 8  : 2;
+        case LIS3DH_FS_8G:    return (mode == LIS3DH_MODE_LP) ? 64  : (mode == LIS3DH_MODE_NORMAL) ? 16 : 4;
+        case LIS3DH_FS_16G:   return (mode == LIS3DH_MODE_LP) ? 192 : (mode == LIS3DH_MODE_NORMAL) ? 48 : 12;
+        default:              return 0;
     }
-
-    return 0;
 }
+
 
 int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t data[6];
@@ -273,8 +237,8 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t scale, sens;
     int err = 0;
 
-    scale = acc_shift(lis3dh);
-    sens = acc_sensitivity(lis3dh);
+    scale = acc_shift(lis3dh->cfg.mode);
+    sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
     /* must set MSbit of the address to multi-read and 
        have the device auto-increment the address. */
@@ -301,17 +265,7 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
 
     /* FIFO is always 10-bit */
     scale = 6;
-
-    /* normal mode */
-    if (lis3dh->cfg.range == LIS3DH_FS_2G) {
-        sens = 4;
-    } else if (lis3dh->cfg.range == LIS3DH_FS_4G) {
-        sens = 8;
-    } else if (lis3dh->cfg.range == LIS3DH_FS_8G) {
-        sens = 16;
-    } else { /* 16G */
-        sens = 48;
-    }
+    sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
     /* fifo buffer is max 32 */
     fifo->size = lis3dh->cfg.fifo.fth > 32 ? 32 : lis3dh->cfg.fifo.fth;
@@ -334,8 +288,13 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     return err;
 }
 
+/* if NULL, this function doesn't have to be called */
 int lis3dh_deinit(lis3dh_t *lis3dh) {
-    return lis3dh->dev.deinit();
+    if (lis3dh->dev.deinit != NULL) {
+        return lis3dh->dev.deinit();
+    }
+
+    return 0;
 }
 
 /* read INT1_SRC to clear latched INT1 irq */

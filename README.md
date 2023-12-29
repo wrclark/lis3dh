@@ -30,6 +30,8 @@ int deinit(void);
 ```
 All above functions return `0` on success.
 
+The `init` and `deinit` pointers can both be set to `NULL` and they won't be run.
+
 ## Usage
 Simple example:
 ```c
@@ -146,6 +148,7 @@ x: 0.518000, y: -0.846000, z: -0.100000
 Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used like such:
 
 All FIFO readings use 10-bit resolution regardless of the mode set in `lis.cfg.mode`.
+
 The watermark level can also be adjusted to a value [0-31] inclusive by modifying the `lis.cfg.fifo.fth` property before calling configure().
 ```c
 #define _GNU_SOURCE

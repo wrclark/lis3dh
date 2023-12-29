@@ -10,12 +10,12 @@
 #define GPIO_INTERRUPT_PIN 12
 
 /* calc magnitude of accel [x y z] vector */
-float mag(float x, float y, float z) {
+static float mag(float x, float y, float z) {
     return sqrt( powf(x, 2) + powf(y, 2) + powf(z, 2) );
 }
 
 /* print message then exit */
-void quit(const char *msg, lis3dh_t *lis) {
+static void quit(const char *msg, lis3dh_t *lis) {
     lis->dev.deinit();
     fprintf(stderr, "%s\n", msg);
     exit(1);
@@ -25,7 +25,7 @@ int main() {
 
     lis3dh_t lis;
     struct lis3dh_fifo_data fifo;
-    int k;
+    int i, k;
 
     /* set fn ptrs to rw on bus (i2c or SPI) */
     lis.dev.init = i2c_init;
@@ -53,6 +53,8 @@ int main() {
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1;
     lis.cfg.int1.wtm = 1;
     lis.cfg.int1.latch = 1;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_REFERENCE;
+    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     
 
     /* write device config */
@@ -60,24 +62,28 @@ int main() {
         quit("configure()", &lis);
     }
     
-    /* wait for interrupt from LIS3DH */
-    if (int_poll(GPIO_INTERRUPT_PIN)) {
-        quit("int_poll()", &lis);
-    }
+    for(i=0; i<50; i++) {
+            /* wait for interrupt from LIS3DH */
+        if (int_poll(GPIO_INTERRUPT_PIN)) {
+            quit("int_poll()", &lis);
+        }
 
-    if (lis3dh_clear_int1(&lis)) {
-        quit("clear_int1()", &lis);
-    }
+        if (lis3dh_clear_int1(&lis)) {
+            quit("clear_int1()", &lis);
+        }
 
-    /* read stored fifo data into `fifo' struct */
-    if (lis3dh_read_fifo(&lis, &fifo)) {
-        quit("read_fifo()", &lis);
-    }
+        /* read stored fifo data into `fifo' struct */
+        if (lis3dh_read_fifo(&lis, &fifo)) {
+            quit("read_fifo()", &lis);
+        }
 
-    for(k=0; k<fifo.size; k++) {
-        printf("%04.04f %04.04f %04.04f %04.04f\n",
-            fifo.x[k], fifo.y[k], fifo.z[k],
-            mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+        for(k=0; k<fifo.size; k++) {
+            printf("%04.04f %04.04f %04.04f %04.04f\n",
+                fifo.x[k], fifo.y[k], fifo.z[k],
+                mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+        }
+
+        lis3dh_reference(&lis);
     }
     
     /* unregister interrupt */
