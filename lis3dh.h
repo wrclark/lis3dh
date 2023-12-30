@@ -65,7 +65,7 @@ struct lis3dh_device {
 };
 
 /* config for INT2 trigger output */
-struct lis3dh_int2_config {
+struct lis3dh_int_pin2_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
     uint8_t ia2; /* IA2 interrupt */
@@ -76,7 +76,7 @@ struct lis3dh_int2_config {
 };
 
 /* config for INT1 trigger output */
-struct lis3dh_int1_config {
+struct lis3dh_int_pin1_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
     uint8_t ia2; /* IA2 interrupt */
@@ -110,8 +110,8 @@ struct lis3dh_config {
     uint8_t mode; /* LPen and HR */
     struct lis3dh_fifo_config fifo;
     struct lis3dh_filter_config filter;
-    struct lis3dh_int1_config int1;
-    struct lis3dh_int2_config int2;
+    struct lis3dh_int_pin1_config int_pin1;
+    struct lis3dh_int_pin2_config int_pin2;
 };
 
 /* data read not from FIFO is put here */
