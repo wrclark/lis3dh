@@ -47,25 +47,18 @@ int lis3dh_init(lis3dh_t *lis3dh) {
         }
     }
 
-    /* check WHO_AM_I to equal to 0x33 */
+    /* check WHO_AM_I equal to 0x33 */
     err |= lis3dh->dev.read(REG_WHO_AM_I, &result, 1);
     if (result != 0x33) {
        return 1;
     }
 
     /* zero device struct */
-    lis3dh->cfg.rate = 0;
-    lis3dh->cfg.range = 0;
-    lis3dh->cfg.mode = 0;
+    memset(&lis3dh->acc, 0, sizeof lis3dh->acc);
+    memset(&lis3dh->cfg, 0, sizeof lis3dh->cfg);
 
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
-    lis3dh->cfg.fifo.trig = 0;
     lis3dh->cfg.fifo.fth = 31; /* default watermark level. */
-
-    memset(&lis3dh->acc, 0, sizeof lis3dh->acc);
-    memset(&lis3dh->cfg.int_pin1, 0, sizeof lis3dh->cfg.int_pin1);
-    memset(&lis3dh->cfg.int_pin2, 0, sizeof lis3dh->cfg.int_pin2);
-    memset(&lis3dh->cfg.filter, 0, sizeof lis3dh->cfg.filter);
 
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
@@ -78,7 +71,8 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 int lis3dh_configure(lis3dh_t *lis3dh) {
     uint8_t ctrl_reg1, ctrl_reg2, ctrl_reg3;
     uint8_t ctrl_reg4, ctrl_reg5, ctrl_reg6;
-    uint8_t fifo_ctrl_reg;
+    uint8_t fifo_ctrl_reg, int1_cfg, int2_cfg;
+    uint8_t int1_ths, int2_ths, int1_dur, int2_dur;
     uint8_t ref; /* dummy */
     int err = 0;
 
@@ -90,6 +84,12 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg5 = 0;
     ctrl_reg6 = 0;
     fifo_ctrl_reg = 0;
+    int1_cfg = 0;
+    int2_cfg = 0;
+    int1_ths = 0;
+    int2_ths = 0;
+    int1_dur = 0;
+    int2_dur = 0;
 
     /* set interrupt registers */
     ctrl_reg3 |= (lis3dh->cfg.int_pin1.click & 1) << 7;
@@ -110,13 +110,38 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg5 |= (lis3dh->cfg.int_pin1.latch & 1) << 3;
     ctrl_reg5 |= (lis3dh->cfg.int_pin2.latch & 1) << 1;
 
+    /* set INT1_CFG and INT2_CFG */
+    int1_cfg |= (lis3dh->cfg.int1_cfg.xl);
+    int1_cfg |= (lis3dh->cfg.int1_cfg.xh) << 1;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.yl) << 2;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.yh) << 3;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.zl) << 4;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.zh) << 5;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.det_6d) << 6;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.aoi) << 7;
+
+    int2_cfg |= (lis3dh->cfg.int2_cfg.xl);
+    int2_cfg |= (lis3dh->cfg.int2_cfg.xh) << 1;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.yl) << 2;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.yh) << 3;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.zl) << 4;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.zh) << 5;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.det_6d) << 6;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.aoi) << 7;
+
+    int1_dur = lis3dh->cfg.int1_dur & 0x7F; 
+    int2_dur = lis3dh->cfg.int2_dur & 0x7F;
+
+    int1_ths = lis3dh->cfg.int1_ths & 0x7F; 
+    int2_ths = lis3dh->cfg.int2_ths & 0x7F;
+
     /* set enable FIFO */
     if (lis3dh->cfg.fifo.mode != 0xFF) {
         ctrl_reg5 |= 0x40; /* bit FIFO_EN */
         
         /* restrict maximum fifo size */
-        if (lis3dh->cfg.fifo.fth > 32) {
-            lis3dh->cfg.fifo.fth = 32;
+        if (lis3dh->cfg.fifo.fth > 31) {
+            lis3dh->cfg.fifo.fth = 31;
         }
 
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth);
@@ -154,6 +179,12 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
     err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
+    err |= lis3dh->dev.write(REG_INT1_CFG, int1_cfg);
+    err |= lis3dh->dev.write(REG_INT1_THS, int1_ths);
+    err |= lis3dh->dev.write(REG_INT1_DURATION, int1_dur);
+    err |= lis3dh->dev.write(REG_INT2_CFG, int2_cfg);
+    err |= lis3dh->dev.write(REG_INT2_THS, int2_ths);
+    err |= lis3dh->dev.write(REG_INT2_DURATION, int2_dur);
 
     /* read REFERENCE to clear internal filter struct */
     err |= lis3dh->dev.read(REG_REFERENCE, &ref, 1);

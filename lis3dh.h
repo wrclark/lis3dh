@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 /* rates */
+/* all power modes */
 #define LIS3DH_ODR_POWEROFF 0x00
 #define LIS3DH_ODR_1_HZ  0x01
 #define LIS3DH_ODR_10_HZ 0x02
@@ -12,7 +13,9 @@
 #define LIS3DH_ODR_100_HZ 0x05
 #define LIS3DH_ODR_200_HZ 0x06
 #define LIS3DH_ODR_400_HZ 0x07
+/* only normal mode */
 #define LIS3DH_ODR_NORM_1344_HZ 0x09
+/* only low-power mode */
 #define LIS3DH_ODR_LP_1600_HZ 0x08
 #define LIS3DH_ODR_LP_5376_HZ 0x09
 
@@ -64,6 +67,18 @@ struct lis3dh_device {
 	int (*deinit)(void);
 };
 
+/* INT1_CFG and INT2_CFG have identical struct */
+struct lis3dh_int_config {
+    uint8_t aoi; /* AND/OR combination of int events */
+    uint8_t det_6d; /* 6 direction detection */
+    uint8_t zh; /* interrupt generation on Z high event / Dir. recog. */
+    uint8_t zl; /* interrupt generation on Z low event / Dir. recog. */
+    uint8_t yh; /* interrupt generation on Y high event / Dir. recog. */
+    uint8_t yl; /* interrupt generation on Y low event / Dir. recog. */
+    uint8_t xh; /* interrupt generation on X high event / Dir. recog. */
+    uint8_t xl; /* interrupt generation on X low event / Dir. recog. */
+};
+
 /* config for INT2 trigger output */
 struct lis3dh_int_pin2_config {
     uint8_t click; /* CLICK interrupt */
@@ -108,10 +123,27 @@ struct lis3dh_config {
     uint8_t rate; /* ODR */
     uint8_t range; /* FS */
     uint8_t mode; /* LPen and HR */
-    struct lis3dh_fifo_config fifo;
-    struct lis3dh_filter_config filter;
+    struct lis3dh_fifo_config     fifo;
+    struct lis3dh_filter_config   filter;
     struct lis3dh_int_pin1_config int_pin1;
     struct lis3dh_int_pin2_config int_pin2;
+    struct lis3dh_int_config      int1_cfg;
+    struct lis3dh_int_config      int2_cfg;
+
+    /* 1 LSb = 16 mg @ FS_2G 
+     * 1 LSb = 32 mg @ FS_4G
+     * 1 LSb = 62 mg @ FS_8G
+     * 1 LSb = 186 mg @ FS_16G 
+     */
+    uint8_t int1_ths; /* 7-bit INT 1 threshold value */
+    uint8_t int2_ths; /* 7-bit INT 2 threshold value */
+
+    /* Duration time is measured in N/ODR where:
+     * --- N = The content of the intX_dur integer
+     * --- ODR = the data rate, eg 100, 400...
+     */
+    uint8_t int1_dur; /* 7-bit INT 1 duration value */
+    uint8_t int2_dur; /* 7-bit INT 2 duration value */
 };
 
 /* data read not from FIFO is put here */
