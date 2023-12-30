@@ -7,7 +7,8 @@
 #include "interrupt.h"
 #include "i2c.h"
 
-#define GPIO_INTERRUPT_PIN 12
+#define GPIO_INTERRUPT_PIN_INT1 12
+#define GPIO_INTERRUPT_PIN_INT2 16
 
 /* calc magnitude of accel [x y z] vector */
 static float mag(float x, float y, float z) {
@@ -41,7 +42,7 @@ int main() {
     }
 
     /* register interrupt */
-    if (int_register(GPIO_INTERRUPT_PIN)) {
+    if (int_register(GPIO_INTERRUPT_PIN_INT1)) {
         quit("int_register()", &lis);
     }
 
@@ -50,10 +51,10 @@ int main() {
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
-    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1;
+    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT2;
     lis.cfg.int1.wtm = 1;
     lis.cfg.int1.latch = 1;
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_REFERENCE;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     
 
@@ -64,7 +65,7 @@ int main() {
     
     for(i=0; i<50; i++) {
             /* wait for interrupt from LIS3DH */
-        if (int_poll(GPIO_INTERRUPT_PIN)) {
+        if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
             quit("int_poll()", &lis);
         }
 
@@ -83,11 +84,10 @@ int main() {
                 mag(fifo.x[k], fifo.y[k], fifo.z[k]));
         }
 
-        lis3dh_reference(&lis);
     }
     
     /* unregister interrupt */
-    if (int_unregister(GPIO_INTERRUPT_PIN)) {
+    if (int_unregister(GPIO_INTERRUPT_PIN_INT1)) {
         quit("int_unregister()", &lis);
     }
 
