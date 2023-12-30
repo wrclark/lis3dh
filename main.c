@@ -36,9 +36,14 @@ int main() {
     lis.dev.deinit = i2c_deinit;
 
 
-    /* initialise struct */
+    /* initialise LIS3DH struct */
     if (lis3dh_init(&lis)) {
         quit("init()", &lis);
+    }
+
+    /* reset device because it sometimes corrupts itself */
+    if (lis3dh_reset(&lis)) {
+        quit("reset()", &lis);
     }
 
     /* register interrupt */

@@ -3,38 +3,6 @@
 #include "lis3dh.h"
 #include "registers.h"
 
-/* reset user regs and reload trim params */
-static int lis3dh_reset(lis3dh_t *lis3dh) {
-    int err = 0;
-
-    /* set BOOT bit so device reloads internal trim parameters */
-    err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
-
-    /* write default values to rw regs */
-    err |= lis3dh->dev.write(REG_CTRL_REG0, 0x10);
-    err |= lis3dh->dev.write(REG_CTRL_REG1, 0x07);
-    err |= lis3dh->dev.write(REG_CTRL_REG2, 0x00);
-    err |= lis3dh->dev.write(REG_CTRL_REG3, 0x00);
-    err |= lis3dh->dev.write(REG_CTRL_REG4, 0x00);
-    err |= lis3dh->dev.write(REG_CTRL_REG5, 0x00);
-    err |= lis3dh->dev.write(REG_CTRL_REG6, 0x00);
-    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, 0x00);
-    err |= lis3dh->dev.write(REG_INT1_CFG, 0x00);
-    err |= lis3dh->dev.write(REG_INT1_THS, 0x00);
-    err |= lis3dh->dev.write(REG_INT1_DURATION, 0x00);
-    err |= lis3dh->dev.write(REG_INT2_CFG, 0x00);
-    err |= lis3dh->dev.write(REG_INT2_THS, 0x00);
-    err |= lis3dh->dev.write(REG_INT2_DURATION, 0x00);
-    err |= lis3dh->dev.write(REG_CLICK_CFG, 0x00);
-    err |= lis3dh->dev.write(REG_CLICK_THS, 0x00);
-    err |= lis3dh->dev.write(REG_TIME_LIMIT, 0x00);
-    err |= lis3dh->dev.write(REG_TIME_LATENCY, 0x00);
-    err |= lis3dh->dev.write(REG_TIME_WINDOW, 0x00);
-    err |= lis3dh->dev.write(REG_ACT_THS, 0x00);
-    err |= lis3dh->dev.write(REG_ACT_DUR, 0x00);
-    
-    return err;
-}
 
 int lis3dh_init(lis3dh_t *lis3dh) {
     uint8_t result;
@@ -62,8 +30,6 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
-
-    err |= lis3dh_reset(lis3dh);
 
     return err;
 }
@@ -111,23 +77,23 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg5 |= (lis3dh->cfg.int_pin2.latch & 1) << 1;
 
     /* set INT1_CFG and INT2_CFG */
-    int1_cfg |= (lis3dh->cfg.int1_cfg.xl);
-    int1_cfg |= (lis3dh->cfg.int1_cfg.xh) << 1;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.yl) << 2;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.yh) << 3;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.zl) << 4;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.zh) << 5;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.det_6d) << 6;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.aoi) << 7;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.xl & 1);
+    int1_cfg |= (lis3dh->cfg.int1_cfg.xh & 1) << 1;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.yl & 1) << 2;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.yh & 1) << 3;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.zl & 1) << 4;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.zh & 1) << 5;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.det_6d & 1) << 6;
+    int1_cfg |= (lis3dh->cfg.int1_cfg.aoi & 1) << 7;
 
-    int2_cfg |= (lis3dh->cfg.int2_cfg.xl);
-    int2_cfg |= (lis3dh->cfg.int2_cfg.xh) << 1;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.yl) << 2;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.yh) << 3;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.zl) << 4;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.zh) << 5;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.det_6d) << 6;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.aoi) << 7;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.xl & 1);
+    int2_cfg |= (lis3dh->cfg.int2_cfg.xh & 1) << 1;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.yl & 1) << 2;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.yh & 1) << 3;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.zl & 1) << 4;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.zh & 1) << 5;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.det_6d & 1) << 6;
+    int2_cfg |= (lis3dh->cfg.int2_cfg.aoi & 1) << 7;
 
     int1_dur = lis3dh->cfg.int1_dur & 0x7F; 
     int2_dur = lis3dh->cfg.int2_dur & 0x7F;
@@ -172,12 +138,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         ctrl_reg1 |= 0x08;
     }
 
-    err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
-    err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
-    err |= lis3dh->dev.write(REG_CTRL_REG3, ctrl_reg3);
-    err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
-    err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
-    err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
+    /* write these before the control regs that start the device */
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
     err |= lis3dh->dev.write(REG_INT1_CFG, int1_cfg);
     err |= lis3dh->dev.write(REG_INT1_THS, int1_ths);
@@ -185,6 +146,14 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_INT2_CFG, int2_cfg);
     err |= lis3dh->dev.write(REG_INT2_THS, int2_ths);
     err |= lis3dh->dev.write(REG_INT2_DURATION, int2_dur);
+
+    err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
+    err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
+    err |= lis3dh->dev.write(REG_CTRL_REG3, ctrl_reg3);
+    err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
+    err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
+    err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
+
 
     /* read REFERENCE to clear internal filter struct */
     err |= lis3dh->dev.read(REG_REFERENCE, &ref, 1);
@@ -326,4 +295,36 @@ int lis3dh_clear_int2(lis3dh_t *lis3dh) {
 int lis3dh_reference(lis3dh_t *lis3dh) {
     uint8_t res;
     return lis3dh->dev.read(REG_REFERENCE, &res, 1);
+}
+/* reset user regs and reload trim params */
+int lis3dh_reset(lis3dh_t *lis3dh) {
+    int err = 0;
+
+    /* set BOOT bit so device reloads internal trim parameters */
+    err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
+
+    /* write default values to rw regs */
+    err |= lis3dh->dev.write(REG_CTRL_REG0, 0x10);
+    err |= lis3dh->dev.write(REG_CTRL_REG1, 0x07);
+    err |= lis3dh->dev.write(REG_CTRL_REG2, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG3, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG4, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG5, 0x00);
+    err |= lis3dh->dev.write(REG_CTRL_REG6, 0x00);
+    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, 0x00);
+    err |= lis3dh->dev.write(REG_INT1_CFG, 0x00);
+    err |= lis3dh->dev.write(REG_INT1_THS, 0x00);
+    err |= lis3dh->dev.write(REG_INT1_DURATION, 0x00);
+    err |= lis3dh->dev.write(REG_INT2_CFG, 0x00);
+    err |= lis3dh->dev.write(REG_INT2_THS, 0x00);
+    err |= lis3dh->dev.write(REG_INT2_DURATION, 0x00);
+    err |= lis3dh->dev.write(REG_CLICK_CFG, 0x00);
+    err |= lis3dh->dev.write(REG_CLICK_THS, 0x00);
+    err |= lis3dh->dev.write(REG_TIME_LIMIT, 0x00);
+    err |= lis3dh->dev.write(REG_TIME_LATENCY, 0x00);
+    err |= lis3dh->dev.write(REG_TIME_WINDOW, 0x00);
+    err |= lis3dh->dev.write(REG_ACT_THS, 0x00);
+    err |= lis3dh->dev.write(REG_ACT_DUR, 0x00);
+    
+    return err;
 }

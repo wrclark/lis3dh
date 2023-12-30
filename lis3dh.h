@@ -179,5 +179,6 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
 int lis3dh_clear_int1(lis3dh_t *lis3dh);
 int lis3dh_clear_int2(lis3dh_t *lis3dh);
 int lis3dh_reference(lis3dh_t *lis3dh);
+int lis3dh_reset(lis3dh_t *lis3dh);
 
 #endif
