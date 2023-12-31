@@ -155,6 +155,17 @@ struct lis3dh_config {
     /* Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
      * --- ODR = the data rate, eg 100, 400...
+     * [ODR] [1 LSb in milliseconds]
+     *   1      1000
+     *   10     100
+     *   25     40
+     *   50     20
+     *   100    10
+     *   200    5
+     *   400    2.5
+     *   1600   0.6
+     *   1344   0.744
+     *   5376   0.186
      */
     uint8_t int1_dur; /* 7-bit INT 1 duration value */
     uint8_t int2_dur; /* 7-bit INT 2 duration value */

@@ -1,6 +1,5 @@
 #include <stddef.h>
 #include <string.h>
-#include <stdio.h>
 #include "lis3dh.h"
 #include "registers.h"
 
