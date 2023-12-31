@@ -43,9 +43,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     uint8_t fifo_ctrl_reg, int1_cfg, int2_cfg;
     uint8_t int1_ths, int2_ths, int1_dur, int2_dur;
     uint8_t click_cfg, click_ths;
-    uint8_t time_limit, time_latency, time_window;
-    uint8_t act_ths, act_dur;
-    uint8_t ref; /* dummy */
+    uint8_t time_limit, act_ths;
     int err = 0;
 
     /* the 0x07 enables Z, Y and X axis in that order */
@@ -65,10 +63,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     click_cfg = 0;
     click_ths = 0;
     time_limit = 0;
-    time_latency = 0;
-    time_window = 0;
     act_ths = 0;
-    act_dur = 0;
     ctrl_reg0 = 0;
     temp_cfg_reg = 0;
 
@@ -79,12 +74,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     /* set time limit */
     time_limit |= (lis3dh->cfg.time_limit & 0x7F);
 
-    /* set time latency and window */
-    time_latency = lis3dh->cfg.time_latency;
-    time_window = lis3dh->cfg.time_window;
-
     act_ths |= (lis3dh->cfg.act_ths & 0x7F); 
-    act_dur = lis3dh->cfg.act_dur;
 
     /* set click config register */
     click_cfg |= (lis3dh->cfg.click.xs & 1);
@@ -199,10 +189,10 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_CLICK_CFG, click_cfg);
     err |= lis3dh->dev.write(REG_CLICK_THS, click_ths);
     err |= lis3dh->dev.write(REG_TIME_LIMIT, time_limit);
-    err |= lis3dh->dev.write(REG_TIME_LATENCY, time_latency);
-    err |= lis3dh->dev.write(REG_TIME_WINDOW, time_window);
+    err |= lis3dh->dev.write(REG_TIME_LATENCY, lis3dh->cfg.time_latency);
+    err |= lis3dh->dev.write(REG_TIME_WINDOW, lis3dh->cfg.time_window);
     err |= lis3dh->dev.write(REG_ACT_THS, act_ths);
-    err |= lis3dh->dev.write(REG_ACT_DUR, act_dur);
+    err |= lis3dh->dev.write(REG_ACT_DUR, lis3dh->cfg.act_dur);
     err |= lis3dh->dev.write(REG_TEMP_CFG_REG, temp_cfg_reg);
 
     err |= lis3dh->dev.write(REG_CTRL_REG0, ctrl_reg0);
@@ -212,10 +202,6 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
     err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
     err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
-
-
-    /* read REFERENCE to clear internal filter struct */
-    err |= lis3dh->dev.read(REG_REFERENCE, &ref, 1);
 
     /* sleep for a period TBD ~ ODR */
     lis3dh->dev.sleep(50000); /* 50 ms */
@@ -421,10 +407,10 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
    temp sensing is always in 8-bit mode 
    operating range: -40 to 85 celsius */
 int lis3dh_read_temp(lis3dh_t *lis3dh) {
-    uint8_t data[2];
+    uint8_t data;
     int err = 0;
 
-    err |= lis3dh->dev.read(REG_OUT_ADC3_L | 0x80, data, 2);
-    lis3dh->adc.adc3 = (float)((int16_t)(data[1] | (data[0] << 8)) >> 8) + 25.0;
+    err |= lis3dh->dev.read(REG_OUT_ADC3_H, &data, 1);
+    lis3dh->adc.adc3 = (float)((int8_t)data) + 25.0;
     return err;
 }
