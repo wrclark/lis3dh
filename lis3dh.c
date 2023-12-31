@@ -37,8 +37,12 @@ int lis3dh_init(lis3dh_t *lis3dh) {
 int lis3dh_configure(lis3dh_t *lis3dh) {
     uint8_t ctrl_reg1, ctrl_reg2, ctrl_reg3;
     uint8_t ctrl_reg4, ctrl_reg5, ctrl_reg6;
+    uint8_t ctrl_reg0, temp_cfg_reg;
     uint8_t fifo_ctrl_reg, int1_cfg, int2_cfg;
     uint8_t int1_ths, int2_ths, int1_dur, int2_dur;
+    uint8_t click_cfg, click_ths;
+    uint8_t time_limit, time_latency, time_window;
+    uint8_t act_ths, act_dur;
     uint8_t ref; /* dummy */
     int err = 0;
 
@@ -56,44 +60,84 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     int2_ths = 0;
     int1_dur = 0;
     int2_dur = 0;
+    click_cfg = 0;
+    click_ths = 0;
+    time_limit = 0;
+    time_latency = 0;
+    time_window = 0;
+    act_ths = 0;
+    act_dur = 0;
+    ctrl_reg0 = 0;
+    temp_cfg_reg = 0;
+
+    /* determine whether to enable ADC or TEMP sensor */
+    temp_cfg_reg |= (lis3dh->cfg.en_adc & 1) << 7;
+    temp_cfg_reg |= (lis3dh->cfg.en_temp & 1) << 6;
+
+    /* set time limit */
+    time_limit |= (lis3dh->cfg.time_limit & 0x7F);
+
+    /* set time latency and window */
+    time_latency = lis3dh->cfg.time_latency;
+    time_window = lis3dh->cfg.time_window;
+
+    act_ths |= (lis3dh->cfg.act_ths & 0x7F); 
+    act_dur = lis3dh->cfg.act_dur;
+
+    /* set click config register */
+    click_cfg |= (lis3dh->cfg.click.xs & 1);
+    click_cfg |= (lis3dh->cfg.click.xd & 1) << 1;
+    click_cfg |= (lis3dh->cfg.click.ys & 1) << 2;
+    click_cfg |= (lis3dh->cfg.click.yd & 1) << 3;
+    click_cfg |= (lis3dh->cfg.click.zs & 1) << 4;
+    click_cfg |= (lis3dh->cfg.click.zd & 1) << 5;
+
+    /* CLICK threshold */
+    click_ths |= (lis3dh->cfg.click_ths & 0x7F);
+    click_ths |= (lis3dh->cfg.click.latch & 1) << 7;
+
 
     /* set interrupt registers */
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.click & 1) << 7;
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.ia1 & 1) << 6;
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.ia2 & 1) << 5;
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.drdy_zyxda & 1) << 4;
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.drdy_321 & 1) << 3;
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.wtm & 1) << 2;
-    ctrl_reg3 |= (lis3dh->cfg.int_pin1.overrun & 1) << 1;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.click & 1) << 7;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.ia1 & 1) << 6;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.ia2 & 1) << 5;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.drdy_zyxda & 1) << 4;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.drdy_321 & 1) << 3;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.wtm & 1) << 2;
+    ctrl_reg3 |= (lis3dh->cfg.pin1.overrun & 1) << 1;
 
-    ctrl_reg6 |= (lis3dh->cfg.int_pin2.click & 1) << 7;
-    ctrl_reg6 |= (lis3dh->cfg.int_pin2.ia1 & 1) << 6;
-    ctrl_reg6 |= (lis3dh->cfg.int_pin2.ia2 & 1) << 5;
-    ctrl_reg6 |= (lis3dh->cfg.int_pin2.boot & 1) << 4;
-    ctrl_reg6 |= (lis3dh->cfg.int_pin2.act & 1) << 3;
-    ctrl_reg6 |= (lis3dh->cfg.int_pin2.polarity & 1) << 1;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.click & 1) << 7;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.ia1 & 1) << 6;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.ia2 & 1) << 5;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.boot & 1) << 4;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.act & 1) << 3;
+    ctrl_reg6 |= (lis3dh->cfg.pin2.polarity & 1) << 1;
 
-    ctrl_reg5 |= (lis3dh->cfg.int_pin1.latch & 1) << 3;
-    ctrl_reg5 |= (lis3dh->cfg.int_pin2.latch & 1) << 1;
+    /* set some of CTRL_REG5 */
+    ctrl_reg5 |= (lis3dh->cfg.int2.en_4d & 1);
+    ctrl_reg5 |= (lis3dh->cfg.pin2.latch & 1) << 1;
+    ctrl_reg5 |= (lis3dh->cfg.int1.en_4d & 1) << 2;
+    ctrl_reg5 |= (lis3dh->cfg.pin1.latch & 1) << 3;
+    
 
     /* set INT1_CFG and INT2_CFG */
-    int1_cfg |= (lis3dh->cfg.int1_cfg.xl & 1);
-    int1_cfg |= (lis3dh->cfg.int1_cfg.xh & 1) << 1;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.yl & 1) << 2;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.yh & 1) << 3;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.zl & 1) << 4;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.zh & 1) << 5;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.det_6d & 1) << 6;
-    int1_cfg |= (lis3dh->cfg.int1_cfg.aoi & 1) << 7;
+    int1_cfg |= (lis3dh->cfg.int1.xl & 1);
+    int1_cfg |= (lis3dh->cfg.int1.xh & 1) << 1;
+    int1_cfg |= (lis3dh->cfg.int1.yl & 1) << 2;
+    int1_cfg |= (lis3dh->cfg.int1.yh & 1) << 3;
+    int1_cfg |= (lis3dh->cfg.int1.zl & 1) << 4;
+    int1_cfg |= (lis3dh->cfg.int1.zh & 1) << 5;
+    int1_cfg |= (lis3dh->cfg.int1.en_6d & 1) << 6;
+    int1_cfg |= (lis3dh->cfg.int1.aoi & 1) << 7;
 
-    int2_cfg |= (lis3dh->cfg.int2_cfg.xl & 1);
-    int2_cfg |= (lis3dh->cfg.int2_cfg.xh & 1) << 1;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.yl & 1) << 2;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.yh & 1) << 3;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.zl & 1) << 4;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.zh & 1) << 5;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.det_6d & 1) << 6;
-    int2_cfg |= (lis3dh->cfg.int2_cfg.aoi & 1) << 7;
+    int2_cfg |= (lis3dh->cfg.int2.xl & 1);
+    int2_cfg |= (lis3dh->cfg.int2.xh & 1) << 1;
+    int2_cfg |= (lis3dh->cfg.int2.yl & 1) << 2;
+    int2_cfg |= (lis3dh->cfg.int2.yh & 1) << 3;
+    int2_cfg |= (lis3dh->cfg.int2.zl & 1) << 4;
+    int2_cfg |= (lis3dh->cfg.int2.zh & 1) << 5;
+    int2_cfg |= (lis3dh->cfg.int2.en_6d & 1) << 6;
+    int2_cfg |= (lis3dh->cfg.int2.aoi & 1) << 7;
 
     int1_dur = lis3dh->cfg.int1_dur & 0x7F; 
     int2_dur = lis3dh->cfg.int2_dur & 0x7F;
@@ -125,7 +169,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         ctrl_reg2 |= (lis3dh->cfg.filter.ia2 & 1);
     }
 
-    /* always set block update */
+    /* always set block update (BDU) */
     ctrl_reg4 |= 0x80;
 
     /* set high resolution */
@@ -138,6 +182,10 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         ctrl_reg1 |= 0x08;
     }
 
+    /* ctrl_reg0 is 0x10 | (SDO << 7) */
+    ctrl_reg0 |= 0x10;
+    ctrl_reg0 |= (lis3dh->cfg.sdo_pullup & 1) << 7;
+
     /* write these before the control regs that start the device */
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
     err |= lis3dh->dev.write(REG_INT1_CFG, int1_cfg);
@@ -146,7 +194,16 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_INT2_CFG, int2_cfg);
     err |= lis3dh->dev.write(REG_INT2_THS, int2_ths);
     err |= lis3dh->dev.write(REG_INT2_DURATION, int2_dur);
+    err |= lis3dh->dev.write(REG_CLICK_CFG, click_cfg);
+    err |= lis3dh->dev.write(REG_CLICK_THS, click_ths);
+    err |= lis3dh->dev.write(REG_TIME_LIMIT, time_limit);
+    err |= lis3dh->dev.write(REG_TIME_LATENCY, time_latency);
+    err |= lis3dh->dev.write(REG_TIME_WINDOW, time_window);
+    err |= lis3dh->dev.write(REG_ACT_THS, act_ths);
+    err |= lis3dh->dev.write(REG_ACT_DUR, act_dur);
+    err |= lis3dh->dev.write(REG_TEMP_CFG_REG, temp_cfg_reg);
 
+    err |= lis3dh->dev.write(REG_CTRL_REG0, ctrl_reg0);
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
     err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
     err |= lis3dh->dev.write(REG_CTRL_REG3, ctrl_reg3);

@@ -67,10 +67,21 @@ struct lis3dh_device {
 	int (*deinit)(void);
 };
 
+struct lis3dh_click_config {
+    uint8_t zd; /* double click interrupt on Z-axis */
+    uint8_t zs; /* single click interrupt on Z-axis */
+    uint8_t yd; /* double click interrupt on Y-axis */
+    uint8_t ys; /* single click interrupt on Y-axis */
+    uint8_t xd; /* double click interrupt on X-axis */
+    uint8_t xs; /* single click interrupt on X-axis */
+    uint8_t latch; /* active until CLICK_SRC is read */
+};
+
 /* INT1_CFG and INT2_CFG have identical struct */
 struct lis3dh_int_config {
     uint8_t aoi; /* AND/OR combination of int events */
-    uint8_t det_6d; /* 6 direction detection */
+    uint8_t en_6d; /* 6 direction detection */
+    uint8_t en_4d; /* both en_6d and en_4d must = 1 for 4D to work ! */
     uint8_t zh; /* interrupt generation on Z high event / Dir. recog. */
     uint8_t zl; /* interrupt generation on Z low event / Dir. recog. */
     uint8_t yh; /* interrupt generation on Y high event / Dir. recog. */
@@ -87,7 +98,7 @@ struct lis3dh_int_pin2_config {
     uint8_t boot; /* enable BOOT on pin 2 */
     uint8_t act; /* interrupt on activity */
     uint8_t polarity; /* INT1 & INT2 polarity. 0 active high, 1 active low */
-    uint8_t latch;  /* latch interrupt until cleared */
+    uint8_t latch;  /* active until INT2_SRC read (reg5:1) */
 };
 
 /* config for INT1 trigger output */
@@ -99,7 +110,7 @@ struct lis3dh_int_pin1_config {
     uint8_t drdy_321; /* not sure */
     uint8_t wtm; /* FIFO reached watermark level */
     uint8_t overrun; /* FIFO has overrun */
-    uint8_t latch; /* latch interrupt until cleared */
+    uint8_t latch;  /* active until INT1_SRC read (reg5:0) */
 };
 
 /* config for high-pass filter */
@@ -125,10 +136,11 @@ struct lis3dh_config {
     uint8_t mode; /* LPen and HR */
     struct lis3dh_fifo_config     fifo;
     struct lis3dh_filter_config   filter;
-    struct lis3dh_int_pin1_config int_pin1;
-    struct lis3dh_int_pin2_config int_pin2;
-    struct lis3dh_int_config      int1_cfg;
-    struct lis3dh_int_config      int2_cfg;
+    struct lis3dh_int_pin1_config pin1;
+    struct lis3dh_int_pin2_config pin2;
+    struct lis3dh_int_config      int1;
+    struct lis3dh_int_config      int2;
+    struct lis3dh_click_config    click;
 
     /* 1 LSb = 16 mg @ FS_2G 
      * 1 LSb = 32 mg @ FS_4G
@@ -137,6 +149,8 @@ struct lis3dh_config {
      */
     uint8_t int1_ths; /* 7-bit INT 1 threshold value */
     uint8_t int2_ths; /* 7-bit INT 2 threshold value */
+    uint8_t click_ths; /* 7-bit CLICK threshold value */
+    uint8_t act_ths; /* 7-bit ACT threshold value */
 
     /* Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
@@ -144,6 +158,19 @@ struct lis3dh_config {
      */
     uint8_t int1_dur; /* 7-bit INT 1 duration value */
     uint8_t int2_dur; /* 7-bit INT 2 duration value */
+
+    /* Sleep-to-wake and return-to-sleep duration 
+     * 1 LSb = (8 * 1[LSb] + 1) / ODR
+     */
+    uint8_t act_dur; /* 8-bit ACT duration value */
+
+    uint8_t time_limit; /* 7-bit time limit ~ CLICK */
+    uint8_t time_latency; /* 8-bit time latency ~ CLICK */
+    uint8_t time_window; /* 8-bit time window ~ CLICK */
+
+    uint8_t sdo_pullup; /* Use pull-up on SDO. default 0 use */
+    uint8_t en_adc; /* enable ADC */
+    uint8_t en_temp; /* enable temp sensor on ADC 3 */
 };
 
 /* data read not from FIFO is put here */
