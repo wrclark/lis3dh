@@ -62,6 +62,7 @@ int main() {
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
 
     lis.cfg.en_adc = 1;
+    lis.cfg.en_temp = 1;
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
@@ -87,6 +88,11 @@ int main() {
         /* read ADCs */
         if (lis3dh_read_adc(&lis)) {
             quit("read_adc()", &lis);
+        }
+
+        /* read temp from ADC3 and overwrite local ADC reading for ADC3 */
+        if (lis3dh_read_temp(&lis)) {
+            quit("read_temp()", &lis);
         }
 
         for(k=0; k<fifo.size; k++) {

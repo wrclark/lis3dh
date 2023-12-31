@@ -225,5 +225,6 @@ int lis3dh_clear_int2(lis3dh_t *lis3dh);
 int lis3dh_reference(lis3dh_t *lis3dh);
 int lis3dh_reset(lis3dh_t *lis3dh);
 int lis3dh_read_adc(lis3dh_t *lis3dh);
+int lis3dh_read_temp(lis3dh_t *lis3dh);
 
 #endif

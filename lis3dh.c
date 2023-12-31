@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <string.h>
+#include <stdio.h>
 #include "lis3dh.h"
 #include "registers.h"
 
@@ -410,5 +411,20 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
     lis3dh->adc.adc2 = 1200.0 + (400.0 * (float)(((int16_t)(data[3] | (data[2] << 8))) >> shift) / divisor); 
     lis3dh->adc.adc3 = 1200.0 + (400.0 * (float)(((int16_t)(data[5] | (data[4] << 8))) >> shift) / divisor); 
 
+    return err;
+}
+
+/* the temperature sensor only reports the difference between its current temp,
+   and the factory calibrated temperature, 25 celsius.
+   in increments of plus or negative 1 unit celsius.
+   the reported temperature is stored inplace of adc3 
+   temp sensing is always in 8-bit mode 
+   operating range: -40 to 85 celsius */
+int lis3dh_read_temp(lis3dh_t *lis3dh) {
+    uint8_t data[2];
+    int err = 0;
+
+    err |= lis3dh->dev.read(REG_OUT_ADC3_L | 0x80, data, 2);
+    lis3dh->adc.adc3 = (float)((int16_t)(data[1] | (data[0] << 8)) >> 8) + 25.0;
     return err;
 }
