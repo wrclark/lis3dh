@@ -35,7 +35,6 @@ int main() {
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
-
     /* initialise LIS3DH struct */
     if (lis3dh_init(&lis)) {
         quit("init()", &lis);
@@ -61,19 +60,21 @@ int main() {
     lis.cfg.pin1.latch = 1;
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
-    
 
+    lis.cfg.en_adc = 1;
+    
     /* write device config */
     if (lis3dh_configure(&lis)) {
         quit("configure()", &lis);
     }
     
     for(i=0; i<50; i++) {
-            /* wait for interrupt from LIS3DH */
+        /* wait for interrupt from LIS3DH */
         if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
             quit("int_poll()", &lis);
         }
 
+        /* clear latched interrupt on INT1 */
         if (lis3dh_clear_int1(&lis)) {
             quit("clear_int1()", &lis);
         }
@@ -83,10 +84,16 @@ int main() {
             quit("read_fifo()", &lis);
         }
 
+        /* read ADCs */
+        if (lis3dh_read_adc(&lis)) {
+            quit("read_adc()", &lis);
+        }
+
         for(k=0; k<fifo.size; k++) {
-            printf("%04.04f %04.04f %04.04f %04.04f\n",
+            printf("x: %04.04f y: %04.04f z: %04.04f mag: %04.04f ADC1:%.1f, ADC2:%.1f, ADC3:%.1f\n",
                 fifo.x[k], fifo.y[k], fifo.z[k],
-                mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+                mag(fifo.x[k], fifo.y[k], fifo.z[k]),
+                lis.adc.adc1, lis.adc.adc2, lis.adc.adc3);
         }
 
     }

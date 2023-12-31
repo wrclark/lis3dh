@@ -24,6 +24,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     /* zero device struct */
     memset(&lis3dh->acc, 0, sizeof lis3dh->acc);
     memset(&lis3dh->cfg, 0, sizeof lis3dh->cfg);
+    memset(&lis3dh->adc, 0, sizeof lis3dh->adc);
 
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.fth = 31; /* default watermark level. */
@@ -305,8 +306,8 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     scale = 6;
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
-    /* fifo buffer is max 32 */
-    fifo->size = lis3dh->cfg.fifo.fth > 32 ? 32 : lis3dh->cfg.fifo.fth;
+    /* fifo buffer is max 31 */
+    fifo->size = lis3dh->cfg.fifo.fth > 31 ? 31 : lis3dh->cfg.fifo.fth;
 
     /* must set MSbit of the address to multi-read and 
        have the device auto-increment the address.
@@ -353,6 +354,7 @@ int lis3dh_reference(lis3dh_t *lis3dh) {
     uint8_t res;
     return lis3dh->dev.read(REG_REFERENCE, &res, 1);
 }
+
 /* reset user regs and reload trim params */
 int lis3dh_reset(lis3dh_t *lis3dh) {
     int err = 0;
@@ -383,5 +385,30 @@ int lis3dh_reset(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_ACT_THS, 0x00);
     err |= lis3dh->dev.write(REG_ACT_DUR, 0x00);
     
+    return err;
+}
+
+/* read all 3 ADCs and convert readings depending on power mode
+   st 1 LSb is equal to 1 millivolt */
+int lis3dh_read_adc(lis3dh_t *lis3dh) {
+    uint8_t data[6];
+    int err = 0;
+    uint8_t shift;
+    float divisor;
+    /* read adc{1,2,3} LSB and MSB */
+    err |= lis3dh->dev.read(REG_OUT_ADC1_L | 0x80, data, 6);
+
+    if (lis3dh->cfg.mode == LIS3DH_MODE_LP) {
+        shift = 8;
+        divisor = 256.0;
+    } else {
+        shift = 6;
+        divisor = 1024.0;
+    }
+
+    lis3dh->adc.adc1 = 1200.0 + (400.0 * (float)(((int16_t)(data[1] | (data[0] << 8))) >> shift) / divisor); 
+    lis3dh->adc.adc2 = 1200.0 + (400.0 * (float)(((int16_t)(data[3] | (data[2] << 8))) >> shift) / divisor); 
+    lis3dh->adc.adc3 = 1200.0 + (400.0 * (float)(((int16_t)(data[5] | (data[4] << 8))) >> shift) / divisor); 
+
     return err;
 }

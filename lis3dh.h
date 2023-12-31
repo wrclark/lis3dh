@@ -173,8 +173,24 @@ struct lis3dh_config {
     uint8_t en_temp; /* enable temp sensor on ADC 3 */
 };
 
-/* data read not from FIFO is put here */
-struct lis3dh_acceleration {
+/* reads from internal ADCs. 
+ * Input range: 800 mV to 1600 mV 
+ * Resolution:
+ *              8-bit in LP mode
+ *             10-bit in normal and in HR mode.
+ * Sampling frequency:
+ *              same as ODR
+ * Output:
+ *            actual value in mV
+ */
+struct lis3dh_adc {
+    float adc1;
+    float adc2;
+    float adc3;
+};
+
+/* accel data not read from FIFO is put here */
+struct lis3dh_accel {
     float x;
     float y;
     float z;
@@ -183,7 +199,8 @@ struct lis3dh_acceleration {
 struct lis3dh {
     struct lis3dh_device dev;
     struct lis3dh_config cfg;
-    struct lis3dh_acceleration acc;
+    struct lis3dh_accel  acc;
+    struct lis3dh_adc    adc;
 };
 
 typedef struct lis3dh lis3dh_t;
@@ -207,5 +224,6 @@ int lis3dh_clear_int1(lis3dh_t *lis3dh);
 int lis3dh_clear_int2(lis3dh_t *lis3dh);
 int lis3dh_reference(lis3dh_t *lis3dh);
 int lis3dh_reset(lis3dh_t *lis3dh);
+int lis3dh_read_adc(lis3dh_t *lis3dh);
 
 #endif
