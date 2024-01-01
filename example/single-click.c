@@ -51,12 +51,13 @@ int main() {
     /* 1 LSb = 16 mg @ FS_2G 
      * so a 0.072g 'shock' is 72/16 = 4.5
      * However, the device can have up to +- 40mg read error
-     * 0.112g => 112/16 = 15
+     * 0.112g => 112/16 = 7
      */
     lis.cfg.click_ths = 7; /* pretty sensitive */
 
-    /* the 'shock' must be gone after 10 ms let's say .. */
-        /* Duration time is measured in N/ODR where:
+    /* the 'shock' must be gone after 10 ms let's say ..*/
+    /*
+     * Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
      * --- ODR = the data rate, eg 100, 400...
      * [ODR] [1 LSb in milliseconds]

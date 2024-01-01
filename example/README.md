@@ -13,4 +13,8 @@ The LIS3DH supports two different interrupt "output pins," `INT1` and `INT2`. Th
 
 ### single-click.c
 
-Set up single-click detection using HP filter
+Set up single-click detection
+
+### double-click.c
+
+Set up double-click detection

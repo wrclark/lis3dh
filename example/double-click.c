@@ -20,14 +20,6 @@
 #include "i2c.h"
 
 #define GPIO_INTERRUPT_PIN_INT1 12
-#define GPIO_INTERRUPT_PIN_INT2 16
-
-/* print message then exit */
-static void quit(const char *msg, lis3dh_t *lis) {
-    lis->dev.deinit();
-    fprintf(stderr, "%s\n", msg);
-    exit(1);
-}
 
 int main() {
 
@@ -42,17 +34,17 @@ int main() {
 
     /* initialise LIS3DH struct */
     if (lis3dh_init(&lis)) {
-        quit("init()", &lis);
+        /* error handling */
     }
 
     /* reset device because it sometimes corrupts itself */
     if (lis3dh_reset(&lis)) {
-        quit("reset()", &lis);
+        /* error handling */
     }
 
     /* register interrupt */
     if (int_register(GPIO_INTERRUPT_PIN_INT1)) {
-        quit("int_register()", &lis);
+        /* error handling */
     }
 
     /* set up config */
@@ -93,19 +85,19 @@ int main() {
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
-        quit("configure()", &lis);
+        /* error handling */
     }
 
     for(;;) {
 
         /* poll interrupt on INT1 pin */
         if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
-            quit("int_poll()", &lis);
+            /* error handling */
         } 
 
         /* read CLICK_SRC when interrupt has fired */
         if (lis3dh_read_click(&lis)) {
-            quit("read_click()", &lis);
+            /* error handling */
         }
 
         /* only print data if DCLICK=1 in CLICK_SRC */
@@ -123,12 +115,12 @@ int main() {
     
     /* unregister interrupt */
     if (int_unregister(GPIO_INTERRUPT_PIN_INT1)) {
-        quit("int_unregister()", &lis);
+       /* error handling */
     }
 
     /* deinitalise struct */
     if (lis3dh_deinit(&lis)) {
-        quit("deinit()", &lis);
+        /* error handling */
     }
 
     return 0;

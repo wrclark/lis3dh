@@ -10,7 +10,7 @@ A C89 driver for the 3-axis accelerometer LIS3DH. Supports both i2c and SPI.
 > - Interrupt generation
 > - Free-fall detection (soon)
 > - Single-click detection
-> - Double-click detection (soon)
+> - Double-click detection
 > - 4D/6D orientation detection (soon)
 
 ## Examples

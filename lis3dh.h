@@ -200,6 +200,11 @@ struct lis3dh_config {
      *   1600   0.6
      *   1344   0.744
      *   5376   0.186
+     * (Note: this calc also applies to:
+     *      - time_limit
+     *      - time_window
+     *      - time_latency
+     * used in CLICK)
      */
     uint8_t int1_dur; /* 7-bit INT 1 duration value */
     uint8_t int2_dur; /* 7-bit INT 2 duration value */
