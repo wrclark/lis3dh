@@ -58,7 +58,7 @@ int main() {
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT2;
     lis.cfg.pin1.wtm = 1;
     lis.cfg.pin1.latch = 1;
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_AUTORESET;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
 
     lis.cfg.en_adc = 1;
@@ -76,7 +76,7 @@ int main() {
         }
 
         /* clear latched interrupt on INT1 */
-        if (lis3dh_clear_int1(&lis)) {
+        if (lis3dh_read_int1(&lis)) {
             quit("clear_int1()", &lis);
         }
 

@@ -25,6 +25,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     memset(&lis3dh->acc, 0, sizeof lis3dh->acc);
     memset(&lis3dh->cfg, 0, sizeof lis3dh->cfg);
     memset(&lis3dh->adc, 0, sizeof lis3dh->adc);
+    memset(&lis3dh->src, 0, sizeof lis3dh->src);
 
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.fifo.fth = 31; /* default watermark level. */
@@ -161,6 +162,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     }
 
     /* always set block update (BDU) */
+    /* guarantees all bytes for one [x y z] set were sampled at the same time */
     ctrl_reg4 |= 0x80;
 
     /* set high resolution */
@@ -322,16 +324,19 @@ int lis3dh_deinit(lis3dh_t *lis3dh) {
     return 0;
 }
 
-/* read INT1_SRC to clear latched INT1 irq */
-int lis3dh_clear_int1(lis3dh_t *lis3dh) {
-    uint8_t res;
-    return lis3dh->dev.read(REG_INT1_SRC, &res, 1);
+/* read INT1_SRC to clear interrupt active flag and get relevant data */
+int lis3dh_read_int1(lis3dh_t *lis3dh) {
+    return lis3dh->dev.read(REG_INT1_SRC, &lis3dh->src.int1, 1);
 }
 
-/* read INT2_SRC to clear latched INT2 irq */
-int lis3dh_clear_int2(lis3dh_t *lis3dh) {
-    uint8_t res;
-    return lis3dh->dev.read(REG_INT2_SRC, &res, 1);
+/* read INT2_SRC to clear interrupt active flag and get relevant data */
+int lis3dh_read_int2(lis3dh_t *lis3dh) {
+    return lis3dh->dev.read(REG_INT2_SRC, &lis3dh->src.int2, 1);
+}
+
+/* read CLICK_SRC to clear interrupt active flag and get relevant data */
+int lis3dh_read_click(lis3dh_t *lis3dh) {
+    return lis3dh->dev.read(REG_CLICK_SRC, &lis3dh->src.click, 1);
 }
 
 /* read REFERENCE reg to reset HP filter in REFERENCE mode
@@ -375,7 +380,7 @@ int lis3dh_reset(lis3dh_t *lis3dh) {
 }
 
 /* read all 3 ADCs and convert readings depending on power mode
-   st 1 LSb is equal to 1 millivolt */
+   st 1 float count is equal to 1 millivolt */
 int lis3dh_read_adc(lis3dh_t *lis3dh) {
     uint8_t data[6];
     int err = 0;

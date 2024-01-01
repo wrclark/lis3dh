@@ -3,6 +3,22 @@
 
 #include <stdint.h>
 
+/* macros for checking INT_SRC registers upon interrupt */
+#define LIS3DH_INT_SRC_X_LOW(c)  ((c & 1) == 1)
+#define LIS3DH_INT_SRC_X_HIGH(c) (((c >> 1) & 1) == 1)
+#define LIS3DH_INT_SRC_Y_LOW(c)  (((c >> 2) & 1) == 1)
+#define LIS3DH_INT_SRC_Y_HIGH(c) (((c >> 3) & 1) == 1)
+#define LIS3DH_INT_SRC_Z_LOW(c)  (((c >> 4) & 1) == 1)
+#define LIS3DH_INT_SRC_Z_HIGH(c) (((c >> 5) & 1) == 1)
+
+/* macros for checking CLICK_SRC register upon interrupt */
+#define LIS3DH_CLICK_SRC_X(c)    ((c & 1) == 1)        /* X high event */
+#define LIS3DH_CLICK_SRC_Y(c)    (((c >> 1) & 1) == 1) /* Y high event */
+#define LIS3DH_CLICK_SRC_Z(c)    (((c >> 2) & 1) == 1) /* Z high event */
+#define LIS3DH_CLICK_SIGN(c)     (((c >> 3) & 1) == 1) /* Click sign, 1 = positive */
+#define LIS3DH_CLICK_SCLICK(c)   (((c >> 4) & 1) == 1) /* Single-click det. enabled */
+#define LIS3DH_CLICK_DCLICK(c)   (((c >> 5) & 1) == 1) /* Double-click det. enabled */
+
 /* rates */
 /* all power modes */
 #define LIS3DH_ODR_POWEROFF 0x00
@@ -41,11 +57,29 @@
 #define LIS3DH_FIFO_TRIG_INT2 0x01
 
 /* filter modes */
-/* this one is reset by reading REFERENCE (0x26) */
-#define LIS3DH_FILTER_MODE_NORMAL 0x00
-#define LIS3DH_FILTER_MODE_REFERENCE 0x01
-#define LIS3DH_FILTER_MODE_NORMAL2 0x02 /* same as 00? */
-#define LIS3DH_FILTER_MODE_AUTORESET 0x03
+/* Normal mode
+ * but reset by reading REFERENCE, instantly removes the DC component 
+ */
+#define LIS3DH_FILTER_MODE_NORMAL_REF 0x00
+/* Reference mode
+ * Output [x y z] data is calculated as the difference between the 
+ * measured acceleration and the value stored in REFERENCE.
+ * signed 7-bit int, 1 LSb value depends on FS.
+ * FS_2G: ~ 16mg per 1 LSb 
+ * FS_4G: ~ 31mg per 1 LSb 
+ * FS_8G: ~ 63mg per 1 LSb
+ * FS_16G: ~127mg per 1 LSb
+ * */
+#define LIS3DH_FILTER_MODE_REFERENCE  0x01
+/* Normal mode
+ * Probably the same as LIS3DH_FILTER_MODE_NORMAL_REF
+ */
+#define LIS3DH_FILTER_MODE_NORMAL     0x02 
+/* Autoreset mode
+ * The filter is automatically reset upon configured interrupt event.
+ * It can be reset at any time by reading REFERENCE.
+ */
+#define LIS3DH_FILTER_MODE_AUTORESET  0x03
 
 /* filter cutoff */
 /* unfortunately, there is only a table for low-power mode,
@@ -207,11 +241,19 @@ struct lis3dh_accel {
     float z;
 };
 
+/* stores interrupt source registers read from the device */
+struct lis3dh_interrupt_src {
+    uint8_t int1;
+    uint8_t int2;
+    uint8_t click;
+};
+
 struct lis3dh {
-    struct lis3dh_device dev;
-    struct lis3dh_config cfg;
-    struct lis3dh_accel  acc;
-    struct lis3dh_adc    adc;
+    struct lis3dh_device        dev; /* fn ptrs to interface w/ device */
+    struct lis3dh_config        cfg; /* config variables to write to device */
+    struct lis3dh_accel         acc; /* accel data read from device (not FIFO) */
+    struct lis3dh_adc           adc; /* adc and optionally temp read from device */
+    struct lis3dh_interrupt_src src; /* INT_SRC registers read from device */
 };
 
 typedef struct lis3dh lis3dh_t;
@@ -231,8 +273,9 @@ int lis3dh_poll(lis3dh_t *lis3dh);
 int lis3dh_read(lis3dh_t *lis3dh);
 int lis3dh_poll_fifo(lis3dh_t *lis3dh);
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
-int lis3dh_clear_int1(lis3dh_t *lis3dh);
-int lis3dh_clear_int2(lis3dh_t *lis3dh);
+int lis3dh_read_int1(lis3dh_t *lis3dh);
+int lis3dh_read_int2(lis3dh_t *lis3dh);
+int lis3dh_read_click(lis3dh_t *lis3dh);
 int lis3dh_reference(lis3dh_t *lis3dh);
 int lis3dh_reset(lis3dh_t *lis3dh);
 int lis3dh_read_adc(lis3dh_t *lis3dh);
