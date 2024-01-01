@@ -6,7 +6,8 @@ A C89 driver for the 3-axis accelerometer LIS3DH. Supports both i2c and SPI.
 > - FIFO 
 > - HP filter
 > - 2G, 4G, 8G and 16G
-> - All power modes
+> - Low-power mode, normal mode and high-resolution mode
+> - ADC (x3) and temperature sensing
 > - Interrupt generation
 > - Free-fall detection (soon)
 > - Single-click detection
