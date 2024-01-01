@@ -3,14 +3,18 @@
 A C89 driver for the 3-axis accelerometer LIS3DH. Supports both i2c and SPI. 
 
 > ### Features
-> - FIFO of varying watermark level, up to 32
-> - HP filter (4 c/o freq)
+> - FIFO 
+> - HP filter
 > - 2G, 4G, 8G and 16G
 > - All power modes
-> - Interrupt generation (partial)
+> - Interrupt generation
 > - Free-fall detection (soon)
-> - Single and double click detection (soon)
+> - Single-click detection
+> - Double-click detection (soon)
 > - 4D/6D orientation detection (soon)
+
+## Examples
+See the examples/ dir for complete code examples
 
 ## Implementation
 This driver requires the user to provide pointers to the following abstractely named functions:

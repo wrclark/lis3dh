@@ -26,6 +26,11 @@ int main() {
         /* error handling */
     }
 
+    /* device sometimes corrupts itself, so reset .. */
+    if (lis3dh_reset(&lis)) {
+        /* error handling */
+    }
+
     /* register interrupt */
     if (int_register(GPIO_INTERRUPT_PIN)) {
         /* error handling */
@@ -36,7 +41,10 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger into INT1 */
-    lis.cfg.int1.wtm = 1; /* trigger upon watermark level reached */
+    lis.cfg.pin1.wtm = 1; /* trigger upon watermark level reached */
+    /* set up HP filter to remove DC component */
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
+    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_4;
     
     if (lis3dh_configure(&lis)) {
        /* error handling */
@@ -52,7 +60,7 @@ int main() {
     }
 
     for(k=0; k<fifo.size; k++) {
-        printf("%04.04f %04.04f %04.04f %04.04f\n", fifo.x[k], fifo.y[k], fifo.z[k]);
+        printf("x: %04.04f, y: %04.04f z: %04.04f\n", fifo.x[k], fifo.y[k], fifo.z[k]);
     }
     
     /* unregister interrupt */
