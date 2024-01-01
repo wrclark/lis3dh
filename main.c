@@ -10,11 +10,6 @@
 #define GPIO_INTERRUPT_PIN_INT1 12
 #define GPIO_INTERRUPT_PIN_INT2 16
 
-/* calc magnitude of accel [x y z] vector */
-static float mag(float x, float y, float z) {
-    return sqrt( powf(x, 2) + powf(y, 2) + powf(z, 2) );
-}
-
 /* print message then exit */
 static void quit(const char *msg, lis3dh_t *lis) {
     lis->dev.deinit();
@@ -25,8 +20,6 @@ static void quit(const char *msg, lis3dh_t *lis) {
 int main() {
 
     lis3dh_t lis;
-    struct lis3dh_fifo_data fifo;
-    int i, k;
 
     /* set fn ptrs to rw on bus (i2c or SPI) */
     lis.dev.init = i2c_init;
@@ -51,58 +44,54 @@ int main() {
     }
 
     /* set up config */
-    lis.cfg.mode = LIS3DH_MODE_NORMAL;
+    lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_2G;
-    lis.cfg.rate = LIS3DH_ODR_100_HZ;
-    lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
-    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT2;
-    lis.cfg.pin1.wtm = 1;
-    lis.cfg.pin1.latch = 1;
+    lis.cfg.rate = LIS3DH_ODR_400_HZ;
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
+    lis.cfg.click.latch = 1;
+    lis.cfg.click.xs = 1;
+    lis.cfg.click.ys = 1;
+    lis.cfg.click.zs = 1;
+    lis.cfg.pin1.click = 1;
 
-    lis.cfg.en_adc = 1;
-    lis.cfg.en_temp = 1;
+    /* 1 LSb = 16 mg @ FS_2G 
+     * so a 0.8g 'shock' is 800/16 = 50
+     */
+    lis.cfg.click_ths = 50;
+
+    /* the 800 mg shock must be gone after 30 ms let's say .. */
+        /* Duration time is measured in N/ODR where:
+     * --- N = The content of the intX_dur integer
+     * --- ODR = the data rate, eg 100, 400...
+     * [ODR] [1 LSb in milliseconds]
+     *   400    2.5
+     * 
+     * At 400 ODR, 30ms/2.5ms = 16
+     */
+    lis.cfg.time_limit = 16;
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
         quit("configure()", &lis);
     }
     
-    for(i=0; i<50; i++) {
-        /* wait for interrupt from LIS3DH */
-        if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
-            quit("int_poll()", &lis);
-        }
-
-        /* clear latched interrupt on INT1 */
-        if (lis3dh_read_int1(&lis)) {
-            quit("clear_int1()", &lis);
-        }
-
-        /* read stored fifo data into `fifo' struct */
-        if (lis3dh_read_fifo(&lis, &fifo)) {
-            quit("read_fifo()", &lis);
-        }
-
-        /* read ADCs */
-        if (lis3dh_read_adc(&lis)) {
-            quit("read_adc()", &lis);
-        }
-
-        /* read temp from ADC3 and overwrite local ADC reading for ADC3 */
-        if (lis3dh_read_temp(&lis)) {
-            quit("read_temp()", &lis);
-        }
-
-        for(k=0; k<fifo.size; k++) {
-            printf("x: %04.04f y: %04.04f z: %04.04f mag: %04.04f ADC1:%.1f, ADC2:%.1f, ADC3:%.1f\n",
-                fifo.x[k], fifo.y[k], fifo.z[k],
-                mag(fifo.x[k], fifo.y[k], fifo.z[k]),
-                lis.adc.adc1, lis.adc.adc2, lis.adc.adc3);
-        }
-
+    if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
+        quit("int_poll()", &lis);
     }
+
+    if (lis3dh_read_click(&lis)) {
+        quit("read_click()", &lis);
+    }
+
+    /* print data gathered from CLICK_SRC */
+    printf("Click: X=%d, Y=%d, Z=%d, Sign=%d, S_en=%d, D_en=%d\n",
+        LIS3DH_CLICK_SRC_X(lis.src.click),
+        LIS3DH_CLICK_SRC_Y(lis.src.click),
+        LIS3DH_CLICK_SRC_Z(lis.src.click),
+        LIS3DH_CLICK_SIGN(lis.src.click),
+        LIS3DH_CLICK_SCLICK(lis.src.click),
+        LIS3DH_CLICK_DCLICK(lis.src.click));
     
     /* unregister interrupt */
     if (int_unregister(GPIO_INTERRUPT_PIN_INT1)) {
