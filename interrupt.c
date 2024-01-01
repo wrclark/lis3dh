@@ -84,6 +84,8 @@ int int_unregister(int pin) {
         return 1;
     }
 
+    usleep(50000); /* sleep 50 ms */
+
     return 0;
 }
 
