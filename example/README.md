@@ -18,3 +18,18 @@ Set up single-click detection
 ### double-click.c
 
 Set up double-click detection
+
+### adc.c 
+
+Enable and read built-in ADCs.
+
+> - Input range: 800 mV to 1600 mV
+> - Resolution: 8-bit in LP mode, 10-bit in normal and in HR mode.
+> - Sampling frequency: same as ODR
+
+### temp.c
+
+Enable and read built-in temperature sensor
+
+> - Operating range: -40 to 85°C
+> - Step size: ±1°C
