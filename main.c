@@ -118,7 +118,7 @@ int main() {
 
         /* print received interrupt .. */
         printf("IA=%d ZH=%d ZL=%d YH=%d YL=%d XH=%d XL=%d\n",
-            !!(lis.src.int1 & 0x80), /* seems to always be cleared */
+            !!(lis.src.int1 & 0x40), 
             LIS3DH_INT_SRC_Z_HIGH(lis.src.int1),
             LIS3DH_INT_SRC_Z_LOW(lis.src.int1),
             LIS3DH_INT_SRC_Y_HIGH(lis.src.int1),
