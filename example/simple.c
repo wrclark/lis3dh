@@ -14,11 +14,12 @@ int main() {
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
+    /* initialise LIS3DH struct */
     if (lis3dh_init(&lis)) {
         /* error handling */
     }
 
-    /* device sometimes corrupts itself, so reset .. */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }
@@ -27,20 +28,24 @@ int main() {
     lis.cfg.range = LIS3DH_FS_4G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
 
+    /* write device config */
     if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
+    /* poll STATUS_REG for new [x y z] data ready */
     if (lis3dh_poll(&lis)) {
         /* error handling */
     }
 
+    /* read latest [x y z] data, store in the `lis' struct's `acc' field */
     if (lis3dh_read(&lis)) {
         /* error handling */
     }
 
     printf("x: %f, y: %f, z: %f\n", lis.acc.x, lis.acc.y, lis.acc.z);
 
+    /* deinitalise struct */
     if (lis3dh_deinit(&lis)) {
         /* error handling */
     }

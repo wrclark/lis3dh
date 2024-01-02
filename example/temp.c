@@ -22,7 +22,7 @@ int main() {
         /* error handling */
     }
 
-    /* reset device because it sometimes corrupts itself */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }
@@ -33,13 +33,13 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_400_HZ;
     lis.cfg.en_adc = 1; /* enable ADC */
     lis.cfg.en_temp = 1; /* enable temp sensing */
-
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
+    /* Read all 3 ADCs */
     if (lis3dh_read_adc(&lis)) {
         /* error handling */
     }

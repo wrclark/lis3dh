@@ -22,7 +22,7 @@ int main() {
         /* error handling */
     }
 
-    /* reset device because it sometimes corrupts itself */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }

@@ -214,6 +214,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     return err;
 }
 
+/* should always return something with valid start configuration */
 int lis3dh_poll(lis3dh_t *lis3dh) {
     uint8_t status;
     int err = 0;
@@ -226,6 +227,7 @@ int lis3dh_poll(lis3dh_t *lis3dh) {
     return err;
 }
 
+/* assume fifo configured */
 int lis3dh_poll_fifo(lis3dh_t *lis3dh) {
     uint8_t src;
     int err = 0;

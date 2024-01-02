@@ -25,7 +25,7 @@ int main() {
         /* error handling */
     }
 
-    /* reset device because it sometimes corrupts itself */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }
@@ -39,23 +39,24 @@ int main() {
     lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_400_HZ; /* minimum recommended ODR */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.click = 1; /* enable filtering for CLICK function */
+
     lis.cfg.click.xs = 1; /* enable X axis single click */
     lis.cfg.click.ys = 1; /* enable Y axis single click */
     lis.cfg.click.zs = 1; /* enable Z axis single click */
-    lis.cfg.pin1.click = 1; /* enable click int src through pin1 */
-    lis.cfg.int1.latch = 1; /* latch interrupt until INT1_SRC is read */
+
+    lis.cfg.pin1.click = 1; /* enable CLICK INT through pin1 */
 
     /* 1 LSb = 16 mg @ FS_2G 
-     * so a 0.072g 'shock' is 72/16 = 4.5
-     * However, the device can have up to +- 40mg read error
-     * 0.112g => 112/16 = 7
+     * so a 0.3g 'shock' is 300/16 = 18.75
+     * However, the device can have up to +- 40mg read error, add 40 mg
+     * 0.34g => 340/16 ~= 21
+     * (Note: 0.34g and not 1.34g because of HP filter)
      */
-    lis.cfg.click_ths = 7; /* pretty sensitive */
+    lis.cfg.click_ths = 21;
 
-    /* the 'shock' must be gone after 10 ms let's say ..*/
     /*
      * Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
@@ -63,12 +64,23 @@ int main() {
      * [ODR] [1 LSb in milliseconds]
      *   400    2.5
      * 
-     * At 400 ODR, 10ms/2.5ms = 4
+     * At 400 ODR,
+     * 20 ms = 20/2.5 = 8
      */
-    lis.cfg.time_limit = 4;
+    lis.cfg.time_limit = 8;
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
+        /* error handling */
+    }
+
+    /* read REFERENCE to set filter to current accel field */
+    if (lis3dh_reference(&lis)) {
+        /* error handling */
+    }
+
+    /* read CLICK_SRC to clear previous interrupts, if any */
+    if (lis3dh_read_click(&lis)) {
         /* error handling */
     }
 
@@ -84,14 +96,17 @@ int main() {
             /* error handling */
         }
 
-        /* print data gathered from CLICK_SRC */
-        printf("Click: X=%d, Y=%d, Z=%d, Sign=%d, S_en=%d, D_en=%d\n",
-            LIS3DH_CLICK_SRC_X(lis.src.click),
-            LIS3DH_CLICK_SRC_Y(lis.src.click),
-            LIS3DH_CLICK_SRC_Z(lis.src.click),
-            LIS3DH_CLICK_SIGN(lis.src.click),
-            LIS3DH_CLICK_SCLICK(lis.src.click),
-            LIS3DH_CLICK_DCLICK(lis.src.click));
+         /* only print if SCLICK=1 */
+        if (LIS3DH_CLICK_SCLICK(lis.src.click)) {
+            /* print data gathered from CLICK_SRC */
+            printf("Click: X=%d, Y=%d, Z=%d, Sign=%d, S_CLICK=%d, D_CLICK=%d\n",
+                LIS3DH_CLICK_SRC_X(lis.src.click),
+                LIS3DH_CLICK_SRC_Y(lis.src.click),
+                LIS3DH_CLICK_SRC_Z(lis.src.click),
+                LIS3DH_CLICK_SIGN(lis.src.click),
+                LIS3DH_CLICK_SCLICK(lis.src.click),
+                LIS3DH_CLICK_DCLICK(lis.src.click));
+        }
     }
     
     /* unregister interrupt */

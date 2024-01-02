@@ -17,11 +17,11 @@ This device supports two different interrupt "output pins," `INT1` and `INT2`. T
 
 ### file: single-click.c
 
-Set up single-click detection
+Set up single-click detection (no latching interrupt possible)
 
 ### file: double-click.c
 
-Set up double-click detection
+Set up double-click detection (no latching interrupt possible)
 
 ### file: adc.c 
 

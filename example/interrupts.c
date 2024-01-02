@@ -22,11 +22,12 @@ int main() {
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
+    /* initalise LIS3DH struct */
     if (lis3dh_init(&lis)) {
         /* error handling */
     }
 
-    /* device sometimes corrupts itself, so reset .. */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }
@@ -40,14 +41,21 @@ int main() {
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
-    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger into INT1 */
-    lis.cfg.pin1.wtm = 1; /* trigger upon watermark level reached */
+    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger interrupt into int pin1 */
+    lis.cfg.pin1.wtm = 1; /* trigger upon FIFO watermark level reached */
+
     /* set up HP filter to remove DC component */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_4;
     
+    /* write device config */
     if (lis3dh_configure(&lis)) {
        /* error handling */
+    }
+
+    /* read REFERENCE to set filter to current accel field */
+    if (lis3dh_reference(&lis)) {
+        /* error handling */
     }
     
     /* wait for interrupt from LIS3DH */
@@ -55,10 +63,13 @@ int main() {
         /* error handling */
     }
 
+    /* read as many [x y z] sets as specified by watermark level (fth) */
+    /* copy them to the fifo data struct given below as `fifo' */
     if (lis3dh_read_fifo(&lis, &fifo)) {
        /* error handling */
     }
 
+    /* above function also writes out the qty of [x y z] sets stored in `fifo' */
     for(k=0; k<fifo.size; k++) {
         printf("x: %04.04f, y: %04.04f z: %04.04f\n", fifo.x[k], fifo.y[k], fifo.z[k]);
     }
@@ -68,6 +79,7 @@ int main() {
         /* error handling */
     }
 
+    /* deinitalise struct */
     if (lis3dh_deinit(&lis)) {
         /* error handling */
     }

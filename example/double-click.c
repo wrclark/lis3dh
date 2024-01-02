@@ -37,7 +37,7 @@ int main() {
         /* error handling */
     }
 
-    /* reset device because it sometimes corrupts itself */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }
@@ -51,7 +51,8 @@ int main() {
     lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_400_HZ; /* minimum recommended ODR */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
+    
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.click = 1; /* enable filtering for CLICK function */
 
@@ -59,15 +60,14 @@ int main() {
     lis.cfg.click.yd = 1; /* enable Y axis double click */
     lis.cfg.click.zd = 1; /* enable Z axis double click */
 
-    lis.cfg.pin1.click = 1; /* enable click int src through pin1 */
-    lis.cfg.int1.latch = 1; /* latch interrupt until INT1_SRC is read */
+    lis.cfg.pin1.click = 1; /* enable CLICK INT through pin1 */
 
     /* 1 LSb = 16 mg @ FS_2G 
      * so a 0.3g 'shock' is 300/16 = 18.75
      * However, the device can have up to +- 40mg read error, so add 40mg
      * 0.34g => 340/16 ~= 21
      */
-    lis.cfg.click_ths = 21; /* pretty sensitive */
+    lis.cfg.click_ths = 21;
 
     /* Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
@@ -76,17 +76,22 @@ int main() {
      *   400    2.5
      * 
      *  For ODR=400:
-     *  time_limit of 75 ms = 75/2.5 = 30
-     *  time_latency of 40 ms = 40/2.5 = 16
+     *  time_limit   of 75 ms = 75/2.5  = 30
+     *  time_latency of 40 ms = 40/2.5  = 16
      *  time_window of 500 ms = 500/2.5 = 200 
      * 
      */
-    lis.cfg.time_limit = 30; /* range: 0-127 */
-    lis.cfg.time_latency = 16; /* range: 0-255 */
-    lis.cfg.time_window = 200; /* range: 0-255 */
+    lis.cfg.time_limit   = 30;  /* range: 0-127 */
+    lis.cfg.time_latency = 16;  /* range: 0-255 */
+    lis.cfg.time_window  = 200; /* range: 0-255 */
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
+        /* error handling */
+    }
+
+    /* read REFERENCE to set filter to current accel field */
+    if (lis3dh_reference(&lis)) {
         /* error handling */
     }
 

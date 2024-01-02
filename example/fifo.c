@@ -16,7 +16,13 @@ int main() {
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
+    /* initialise LIS3DH struct */
     if (lis3dh_init(&lis)) {
+        /* error handling */
+    }
+
+    /* reset device just in case */
+    if (lis3dh_reset(&lis)) {
         /* error handling */
     }
 
@@ -25,14 +31,20 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_NORMAL;
 
+    /* write device config */
     if (lis3dh_configure(&lis)) {
         /* error handling */
     }
 
+    /* poll fifo register until it reports that the watermark level has 
+       been reached, or that it has overwritten old data, whichever 
+       happens first. */
     if (lis3dh_poll_fifo(&lis)) {
         /* error handling */
     }
 
+    /* read as many [x y z] sets as specified by watermark level (fth) */
+    /* copy them to the fifo data struct given below as `fifo' */
     if (lis3dh_read_fifo(&lis, &data)) {
         /* error handling */
     }
@@ -42,6 +54,7 @@ int main() {
         printf("x: %f, y: %f, z: %f\n", data.x[i], data.y[i], data.z[i]);
     }
 
+    /* deinitialise struct */
     if (lis3dh_deinit(&lis)) {
         /* error handling */
     }
