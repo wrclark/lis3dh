@@ -1,14 +1,14 @@
 /*
- *       SCLICK                     SCLICK
- *     _________                 __________
- *     |        |                |       | |
- *     |        |                |       | |
- * -----        ------------------       | ------
- *                                       |
- *  TIME_LIMIT                 TIME_LIMIT|
- * >---------<               >----------<|
- *      LATENCY       WINDOW             | 
- *    >----------<>----------<           | => DCLICK INT
+ *       SCLICK                      SCLICK
+ *     __________                  ___________
+ *     |        |                  |       | |
+ *     |        |                  |       | |
+ * -----        --------------------       | ------
+ *                                         |
+ *  TIME_LIMIT               TIME_LIMIT    |
+ * >---------<               >--------<    |        ==> DCLICK_INT
+ *      LATENCY       WINDOW          >----|---<   
+ *    >----------<>----------<          LATENCY
  * */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -54,18 +54,20 @@ int main() {
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.click = 1; /* enable filtering for CLICK function */
+
     lis.cfg.click.xd = 1; /* enable X axis double click */
     lis.cfg.click.yd = 1; /* enable Y axis double click */
     lis.cfg.click.zd = 1; /* enable Z axis double click */
+
     lis.cfg.pin1.click = 1; /* enable click int src through pin1 */
     lis.cfg.int1.latch = 1; /* latch interrupt until INT1_SRC is read */
 
     /* 1 LSb = 16 mg @ FS_2G 
-     * so a 0.072g 'shock' is 72/16 = 4.5
-     * However, the device can have up to +- 40mg read error
-     * 0.112g => 112/16 = 15
+     * so a 0.3g 'shock' is 300/16 = 18.75
+     * However, the device can have up to +- 40mg read error, so add 40mg
+     * 0.34g => 340/16 ~= 21
      */
-    lis.cfg.click_ths = 15; /* pretty sensitive */
+    lis.cfg.click_ths = 21; /* pretty sensitive */
 
     /* Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
@@ -88,6 +90,11 @@ int main() {
         /* error handling */
     }
 
+    /* read CLICK_SRC to clear previous interrupts, if any */
+    if (lis3dh_read_click(&lis)) {
+        /* error handling */
+    }
+
     for(;;) {
 
         /* poll interrupt on INT1 pin */
@@ -100,10 +107,10 @@ int main() {
             /* error handling */
         }
 
-        /* only print data if DCLICK=1 in CLICK_SRC */
+        /* only print if DCLICK=1 */
         if (LIS3DH_CLICK_DCLICK(lis.src.click)) {
             /* print data gathered from CLICK_SRC */
-            printf("Click: X=%d, Y=%d, Z=%d, Sign=%d, S_en=%d, D_en=%d\n",
+            printf("Click: X=%d, Y=%d, Z=%d, Sign=%d, S_CLICK=%d, D_CLICK=%d\n",
                 LIS3DH_CLICK_SRC_X(lis.src.click),
                 LIS3DH_CLICK_SRC_Y(lis.src.click),
                 LIS3DH_CLICK_SRC_Z(lis.src.click),
@@ -111,6 +118,10 @@ int main() {
                 LIS3DH_CLICK_SCLICK(lis.src.click),
                 LIS3DH_CLICK_DCLICK(lis.src.click));
         }
+        
+        /* sleep for 5 ms because gpio sysfs is slow at clearing interrupts */
+        /* not necessary with "real" IRQ */
+        usleep(5000);
     }
     
     /* unregister interrupt */

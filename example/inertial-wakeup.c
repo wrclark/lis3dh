@@ -45,7 +45,7 @@ int main() {
 
     /* 1 LSb = 16 mg @ FS_2G 
      * 0.3g threshold = 300/16 = 18.75
-     * add read error, +40mg => 240/16 = 21.25 ~= 21
+     * add read error, +40mg => 340/16 = 21.25 ~= 21
      * if you for some reason don't want to use the HP filter,
      * just add 1g to the threshold calculation.
      */
@@ -72,15 +72,13 @@ int main() {
     lis.cfg.int1.aoi = 0; /* set to 1 for AND mode */
     lis.cfg.int1.en_6d = 0;
     
-
-    /* latch interrupt. might not work. */
+    /* latch interrupt */
     lis.cfg.int1.latch = 1;
 
     /* set up a HP filter to ignore constant earth acceleration */
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.ia1 = 1; /* enable filter for INT1 generator */
-
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
@@ -111,13 +109,17 @@ int main() {
 
         /* print received interrupt .. */
         printf("IA=%d ZH=%d ZL=%d YH=%d YL=%d XH=%d XL=%d\n",
-            !!(lis.src.int1 & 0x40),
+            LIS3DH_INT_SRC_IA(lis.src.int1),
             LIS3DH_INT_SRC_Z_HIGH(lis.src.int1),
             LIS3DH_INT_SRC_Z_LOW(lis.src.int1),
             LIS3DH_INT_SRC_Y_HIGH(lis.src.int1),
             LIS3DH_INT_SRC_Y_LOW(lis.src.int1),
             LIS3DH_INT_SRC_X_HIGH(lis.src.int1),
             LIS3DH_INT_SRC_X_LOW(lis.src.int1));
+
+        /* sleep for 5 ms because gpio sysfs is slow at clearing interrupts */
+        /* not necessary with "real" IRQ */
+        usleep(5000);
     }
     
     /* unregister interrupt */
