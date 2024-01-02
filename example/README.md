@@ -70,3 +70,7 @@ There are two interrupt registers, `int1` and `int2` that can be configured for 
 ### file: inertial-wakeup.c
 
 Inertial interrupt example in OR mode (easily changed to AND mode) with configurable axes, threshold and minimum acceleration duration.
+
+### file: free-fall.c
+
+Inertial interrupt example activating upon free-fall. It works by using an AND mode interrupt of all the negative axes and comparing them to a threshold value (in the case of negative axis the threshold is multiplied by -1), recommended to be at 350mg (for >30 ms) and activating when the experienced negative acceleration is greater (abs. sense) than the negative threshold.
