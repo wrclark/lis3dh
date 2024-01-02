@@ -91,6 +91,7 @@
 #define LIS3DH_FILTER_CUTOFF_2 0x02
 #define LIS3DH_FILTER_CUTOFF_1 0x03 /* lowest freq */
 
+/* Note: IA{1,2} is interrupt activity {1,2} or interrupt generators */
 
 /* user provided functions, init and deinit can be set to NULL and won't be used */
 struct lis3dh_device {
@@ -122,6 +123,7 @@ struct lis3dh_int_config {
     uint8_t yl; /* interrupt generation on Y low event / Dir. recog. */
     uint8_t xh; /* interrupt generation on X high event / Dir. recog. */
     uint8_t xl; /* interrupt generation on X low event / Dir. recog. */
+    uint8_t latch; /* active until INT1_SRC/INT2_SRC is read */
 };
 
 /* config for INT2 trigger output */
@@ -132,7 +134,6 @@ struct lis3dh_int_pin2_config {
     uint8_t boot; /* enable BOOT on pin 2 */
     uint8_t act; /* interrupt on activity */
     uint8_t polarity; /* INT1 & INT2 polarity. 0 active high, 1 active low */
-    uint8_t latch;  /* active until INT2_SRC read (reg5:1) */
 };
 
 /* config for INT1 trigger output */
@@ -144,7 +145,6 @@ struct lis3dh_int_pin1_config {
     uint8_t drdy_321; /* not sure */
     uint8_t wtm; /* FIFO reached watermark level */
     uint8_t overrun; /* FIFO has overrun */
-    uint8_t latch;  /* active until INT1_SRC read (reg5:0) */
 };
 
 /* config for high-pass filter */

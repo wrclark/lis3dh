@@ -90,6 +90,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 
 
     /* set interrupt registers */
+    /* INT PIN 1 */
     ctrl_reg3 |= (lis3dh->cfg.pin1.click & 1) << 7;
     ctrl_reg3 |= (lis3dh->cfg.pin1.ia1 & 1) << 6;
     ctrl_reg3 |= (lis3dh->cfg.pin1.ia2 & 1) << 5;
@@ -98,6 +99,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg3 |= (lis3dh->cfg.pin1.wtm & 1) << 2;
     ctrl_reg3 |= (lis3dh->cfg.pin1.overrun & 1) << 1;
 
+    /* INT PIN 2 */
     ctrl_reg6 |= (lis3dh->cfg.pin2.click & 1) << 7;
     ctrl_reg6 |= (lis3dh->cfg.pin2.ia1 & 1) << 6;
     ctrl_reg6 |= (lis3dh->cfg.pin2.ia2 & 1) << 5;
@@ -107,9 +109,9 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
 
     /* set some of CTRL_REG5 */
     ctrl_reg5 |= (lis3dh->cfg.int2.en_4d & 1);
-    ctrl_reg5 |= (lis3dh->cfg.pin2.latch & 1) << 1;
+    ctrl_reg5 |= (lis3dh->cfg.int2.latch & 1) << 1;
     ctrl_reg5 |= (lis3dh->cfg.int1.en_4d & 1) << 2;
-    ctrl_reg5 |= (lis3dh->cfg.pin1.latch & 1) << 3;
+    ctrl_reg5 |= (lis3dh->cfg.int1.latch & 1) << 3;
     
 
     /* set INT1_CFG and INT2_CFG */
@@ -131,9 +133,11 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     int2_cfg |= (lis3dh->cfg.int2.en_6d & 1) << 6;
     int2_cfg |= (lis3dh->cfg.int2.aoi & 1) << 7;
 
+    /* duration values */
     int1_dur = lis3dh->cfg.int1_dur & 0x7F; 
     int2_dur = lis3dh->cfg.int2_dur & 0x7F;
 
+    /* threshold values */
     int1_ths = lis3dh->cfg.int1_ths & 0x7F; 
     int2_ths = lis3dh->cfg.int2_ths & 0x7F;
 
@@ -157,8 +161,8 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         ctrl_reg2 |= ((lis3dh->cfg.filter.cutoff & 0x03) << 4);
         ctrl_reg2 |= ((lis3dh->cfg.filter.fds & 1) << 3);
         ctrl_reg2 |= ((lis3dh->cfg.filter.click & 1) << 2);
-        ctrl_reg2 |= ((lis3dh->cfg.filter.ia1 & 1) << 1);
-        ctrl_reg2 |= (lis3dh->cfg.filter.ia2 & 1);
+        ctrl_reg2 |= ((lis3dh->cfg.filter.ia2 & 1) << 1);
+        ctrl_reg2 |= (lis3dh->cfg.filter.ia1 & 1);
     }
 
     /* always set block update (BDU) */
