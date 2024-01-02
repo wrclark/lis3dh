@@ -199,6 +199,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_ACT_THS, act_ths);
     err |= lis3dh->dev.write(REG_ACT_DUR, lis3dh->cfg.act_dur);
     err |= lis3dh->dev.write(REG_TEMP_CFG_REG, temp_cfg_reg);
+    err |= lis3dh->dev.write(REG_REFERENCE, lis3dh->cfg.reference);
 
     err |= lis3dh->dev.write(REG_CTRL_REG0, ctrl_reg0);
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
@@ -287,6 +288,7 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     return err;
 }
 
+/* assume fifo has been configured and poll'd */
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     int32_t x, y, z;
     uint8_t scale, sens;

@@ -4,20 +4,21 @@
 #include <stdint.h>
 
 /* macros for checking INT_SRC registers upon interrupt */
-#define LIS3DH_INT_SRC_X_LOW(c)  ((c & 1) == 1)
-#define LIS3DH_INT_SRC_X_HIGH(c) (((c >> 1) & 1) == 1)
-#define LIS3DH_INT_SRC_Y_LOW(c)  (((c >> 2) & 1) == 1)
-#define LIS3DH_INT_SRC_Y_HIGH(c) (((c >> 3) & 1) == 1)
-#define LIS3DH_INT_SRC_Z_LOW(c)  (((c >> 4) & 1) == 1)
-#define LIS3DH_INT_SRC_Z_HIGH(c) (((c >> 5) & 1) == 1)
+#define LIS3DH_INT_SRC_X_LOW(c)   (!!(c & 0x01)) /* X axis low */
+#define LIS3DH_INT_SRC_X_HIGH(c)  (!!(c & 0x02)) /* X axis high */
+#define LIS3DH_INT_SRC_Y_LOW(c)   (!!(c & 0x04)) /* Y axis low */
+#define LIS3DH_INT_SRC_Y_HIGH(c)  (!!(c & 0x08)) /* Y axis high */
+#define LIS3DH_INT_SRC_Z_LOW(c)   (!!(c & 0x10)) /* Z axis low */
+#define LIS3DH_INT_SRC_Z_HIGH(c)  (!!(c & 0x20)) /* Z axis high */
+#define LIS3DH_INT_SRC_IA(c)      (!!(c & 0x40)) /* Interrupt active */
 
 /* macros for checking CLICK_SRC register upon interrupt */
-#define LIS3DH_CLICK_SRC_X(c)    ((c & 1) == 1)        /* X high event */
-#define LIS3DH_CLICK_SRC_Y(c)    (((c >> 1) & 1) == 1) /* Y high event */
-#define LIS3DH_CLICK_SRC_Z(c)    (((c >> 2) & 1) == 1) /* Z high event */
-#define LIS3DH_CLICK_SIGN(c)     (((c >> 3) & 1) == 1) /* Click sign, 1 = positive */
-#define LIS3DH_CLICK_SCLICK(c)   (((c >> 4) & 1) == 1) /* Single-click det. enabled */
-#define LIS3DH_CLICK_DCLICK(c)   (((c >> 5) & 1) == 1) /* Double-click det. enabled */
+#define LIS3DH_CLICK_SRC_X(c)     (!!(c & 0x01)) /* X high event */
+#define LIS3DH_CLICK_SRC_Y(c)     (!!(c & 0x02)) /* Y high event */
+#define LIS3DH_CLICK_SRC_Z(c)     (!!(c & 0x04)) /* Z high event */
+#define LIS3DH_CLICK_SIGN(c)      (!!(c & 0x08)) /* Click sign, 1 = positive */
+#define LIS3DH_CLICK_SCLICK(c)    (!!(c & 0x10)) /* Single-click det. enabled */
+#define LIS3DH_CLICK_DCLICK(c)    (!!(c & 0x20)) /* Double-click det. enabled */
 
 /* rates */
 /* all power modes */
@@ -126,7 +127,7 @@ struct lis3dh_int_config {
     uint8_t latch; /* active until INT1_SRC/INT2_SRC is read */
 };
 
-/* config for INT2 trigger output */
+/* config for interrupt output pin #2 */
 struct lis3dh_int_pin2_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
@@ -136,7 +137,7 @@ struct lis3dh_int_pin2_config {
     uint8_t polarity; /* INT1 & INT2 polarity. 0 active high, 1 active low */
 };
 
-/* config for INT1 trigger output */
+/* config for interrupt output pin #1 */
 struct lis3dh_int_pin1_config {
     uint8_t click; /* CLICK interrupt */
     uint8_t ia1; /* IA1 interrupt */
@@ -221,6 +222,8 @@ struct lis3dh_config {
     uint8_t sdo_pullup; /* Use pull-up on SDO. default 0 use */
     uint8_t en_adc; /* enable ADC */
     uint8_t en_temp; /* enable temp sensor on ADC 3 */
+
+    uint8_t reference; /* HP filter reference */
 };
 
 /* reads from internal ADCs. 
