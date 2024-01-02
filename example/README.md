@@ -63,9 +63,9 @@ An interrupt is generated when all of the configures axes are at or above the th
 
 #### 6D POSITION recognition
 
-An interrupt is generated when the device is "stable" in a known direction. The interrupt is is active as long as the direction is maintained.
+An interrupt is generated when the device is "stable" in a known direction. The interrupt is active as long as the direction is maintained.
 
-There are two interrupt registers, `int1` and `int2` that can be configured for inertial interrupts. The config structs are identical and contain the fields: `zh`, `zl`, `yh`, `yl`, `xh`, `xl`. `zh` stands for `Z_axis_high` and `zl` stands for `Z_axis_low`. If both are enabled, the device will generate an interrupt upon Z-axis acceleration exceeding `threshold`, or upon Z-axis acceleration reading at or below `-threshold`.
+There are two interrupt registers, `int1` and `int2` that can be configured for inertial interrupts. The config structs are identical and contain the fields: `zh`, `zl`, `yh`, `yl`, `xh`, `xl`, and more. `zh` stands for `Z_axis_high` and `zl` stands for `Z_axis_low`. If both are enabled, the device will generate an interrupt upon Z-axis acceleration exceeding `threshold`, or upon Z-axis acceleration reading at or below `-threshold` (in OR mode. Not possible in AND mode).
 
 ### file: inertial-wakeup.c
 
