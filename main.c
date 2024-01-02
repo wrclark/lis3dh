@@ -1,15 +1,3 @@
-/*
- *       SCLICK                     SCLICK
- *     _________                 __________
- *     |        |                |       | |
- *     |        |                |       | |
- * -----        ------------------       | ------
- *                                       |
- *  TIME_LIMIT                 TIME_LIMIT|
- * >---------<               >----------<|
- *      LATENCY       WINDOW             | 
- *    >----------<>----------<           | => DCLICK INT
- * */
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +8,6 @@
 #include "i2c.h"
 
 #define GPIO_INTERRUPT_PIN_INT1 12
-#define GPIO_INTERRUPT_PIN_INT2 16
 
 /* print message then exit */
 static void quit(const char *msg, lis3dh_t *lis) {
@@ -58,22 +45,18 @@ int main() {
     /* set up config */
     lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_2G;
-    lis.cfg.rate = LIS3DH_ODR_400_HZ; /* minimum recommended ODR */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
-    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
-    lis.cfg.filter.click = 1; /* enable filtering for CLICK function */
-    lis.cfg.click.xd = 1; /* enable X axis double click */
-    lis.cfg.click.yd = 1; /* enable Y axis double click */
-    lis.cfg.click.zd = 1; /* enable Z axis double click */
-    lis.cfg.pin1.click = 1; /* enable click int src through pin1 */
-    lis.cfg.pin1.latch = 1;
+    lis.cfg.rate = LIS3DH_ODR_400_HZ;
+
+    lis.cfg.pin1.ia1 = 1; /* allow INT1 through INT_PIN1 */
+    
 
     /* 1 LSb = 16 mg @ FS_2G 
-     * so a 0.072g 'shock' is 72/16 = 4.5
-     * However, the device can have up to +- 40mg read error
-     * 0.112g => 112/16 = 15
+     * 0.3g threshold = 300/16 = 18.75
+     * add read error, +40mg => 240/16 = 21.25 ~= 21
+     * if you for some reason don't want to use the HP filter,
+     * just add 1g to the threshold calculation.
      */
-    lis.cfg.click_ths = 15; /* pretty sensitive */
+    lis.cfg.int1_ths = 21;
 
     /* Duration time is measured in N/ODR where:
      * --- N = The content of the intX_dur integer
@@ -82,48 +65,71 @@ int main() {
      *   400    2.5
      * 
      *  For ODR=400:
-     *  time_limit of 75 ms = 75/2.5 = 30
-     *  time_latency of 40 ms = 40/2.5 = 16
-     *  time_window of 500 ms = 500/2.5 = 200 
-     * 
+     *     10 ms => 10/2.5 = 5
+     * lis.cfg.int1_dur = 5;  <== 10 ms minimum duration to wake up 
      */
-    lis.cfg.time_limit = 30; /* range: 0-127 */
-    lis.cfg.time_latency = 16; /* range: 0-255 */
-    lis.cfg.time_window = 200; /* range: 0-255 */
+    lis.cfg.int1_dur = 0; /* instantaneous */
+
+    /* enable X_high, Y_high and Z_high */
+    lis.cfg.int1.yh = 1;
+    lis.cfg.int1.zh = 1;
+    lis.cfg.int1.xh = 1;
+
+    /* OR mode. Think about the axis combinations for AND mode */
+    lis.cfg.int1.aoi = 0; /* set to 1 for AND mode */
+    lis.cfg.int1.en_6d = 0;
+    
+
+    /* latch interrupt. might not work. */
+    lis.cfg.int1.latch = 1;
+
+    /* set up a HP filter to ignore constant earth acceleration */
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
+    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
+    lis.cfg.filter.ia1 = 1; /* enable filter for INT1 generator */
+
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
         quit("configure()", &lis);
     }
 
-    for(;;) {
+    /* read REFERENCE to set filter to current accel field */
+    if (lis3dh_reference(&lis)) {
+        quit("reference()", &lis);
+    }
 
-        /* poll interrupt on INT1 pin */
+    /* read INT1_SRC to clear old interrupt if any */
+    if (lis3dh_read_int1(&lis)) {
+        quit("read_int1()", &lis);
+    }
+
+    for( ;; ) {
+
+        /* wait for INT1 to go active */
         if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
             quit("int_poll()", &lis);
-        } 
-
-        /* read CLICK_SRC when interrupt has fired */
-        if (lis3dh_read_click(&lis)) {
-            quit("read_click()", &lis);
         }
 
-        /* only print data if DCLICK=1 in CLICK_SRC */
-        if (LIS3DH_CLICK_DCLICK(lis.src.click)) {
-            /* print data gathered from CLICK_SRC */
-            printf("Click: X=%d, Y=%d, Z=%d, Sign=%d, S_en=%d, D_en=%d\n",
-                LIS3DH_CLICK_SRC_X(lis.src.click),
-                LIS3DH_CLICK_SRC_Y(lis.src.click),
-                LIS3DH_CLICK_SRC_Z(lis.src.click),
-                LIS3DH_CLICK_SIGN(lis.src.click),
-                LIS3DH_CLICK_SCLICK(lis.src.click),
-                LIS3DH_CLICK_DCLICK(lis.src.click));
+        /* read INT1_SRC */
+        if (lis3dh_read_int1(&lis)) {
+            quit("read_int1()", &lis);
         }
+
+        /* print received interrupt .. */
+        printf("IA=%d ZH=%d ZL=%d YH=%d YL=%d XH=%d XL=%d\n",
+            !!(lis.src.int1 & 0x80), /* seems to always be cleared */
+            LIS3DH_INT_SRC_Z_HIGH(lis.src.int1),
+            LIS3DH_INT_SRC_Z_LOW(lis.src.int1),
+            LIS3DH_INT_SRC_Y_HIGH(lis.src.int1),
+            LIS3DH_INT_SRC_Y_LOW(lis.src.int1),
+            LIS3DH_INT_SRC_X_HIGH(lis.src.int1),
+            LIS3DH_INT_SRC_X_LOW(lis.src.int1));
     }
     
     /* unregister interrupt */
     if (int_unregister(GPIO_INTERRUPT_PIN_INT1)) {
-        quit("int_unregister()", &lis);
+       quit("int_unregister()", &lis);
     }
 
     /* deinitalise struct */

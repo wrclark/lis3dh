@@ -46,7 +46,7 @@ int main() {
     lis.cfg.click.ys = 1; /* enable Y axis single click */
     lis.cfg.click.zs = 1; /* enable Z axis single click */
     lis.cfg.pin1.click = 1; /* enable click int src through pin1 */
-    lis.cfg.pin1.latch = 1; /* latch this request I think */
+    lis.cfg.int1.latch = 1; /* latch interrupt until INT1_SRC is read */
 
     /* 1 LSb = 16 mg @ FS_2G 
      * so a 0.072g 'shock' is 72/16 = 4.5
