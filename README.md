@@ -1,45 +1,47 @@
 # LIS3DH
 
-A C89 driver for the 3-axis accelerometer LIS3DH. Supports both i2c and SPI. 
+A C89 driver for the 3-axis accelerometer LIS3DH. Supports both I2C and SPI. 
 
-> ### Features
+### Features
 > - FIFO 
 > - HP filter
 > - 2G, 4G, 8G and 16G
 > - Low-power mode, normal mode and high-resolution mode
-> - ADC (x3) and temperature sensing
+> - ADC and temperature sensing
 > - Interrupt generation
-> - Free-fall detection (soon)
+> - Free-fall detection
 > - Single-click detection
 > - Double-click detection
 > - 4D/6D orientation detection (soon)
 
+
 ## Examples
-See the examples/ dir for complete code examples
+See the `examples/` dir for complete code examples
 
 ## Implementation
-This driver requires the user to provide pointers to the following abstractely named functions:
+This driver requires the user to implement the following interface functions:
 
 This project has example interface code for I2C used on Raspberry Pi.
 ```c
 /* initialise the "interface" */
 int init(void);
-/* read from device register `reg`, `size` amount of bytes and write them to `dst` */
+/* read from register `reg`, `size` amount of bytes, and write them to `dst` */
 int read(uint8_t reg, uint8_t *dst, uint32_t size);
-/* write `value` to device register `reg` */
+/* write `value` to register `reg` */
 int write(uint8_t reg, uint8_t value);
 /* sleep for `dur_us` microseconds */
 int sleep(uint32_t dur_us);
 /* deinitalise the "interface" */
 int deinit(void);
 ```
-All above functions return `0` on success.
+All above functions return `0` on success, and any non-zero value on error.
 
-The `init` and `deinit` pointers can both be set to `NULL` and they won't be run.
+If `init` and `deinit` are set to `NULL`, they will be ignored. Useful on microcontrollers.
 
+---
 
 ### Using i2c on STM32
-Simple example code
+Example code because I couldn't previously find working examples.
 ```c
 #define LIS3DH_I2C_ADDR 0x18
 
