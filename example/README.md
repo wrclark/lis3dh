@@ -72,3 +72,26 @@ Inertial interrupt example in OR mode (easily changed to AND mode) with configur
 ### file: free-fall.c
 
 Inertial interrupt example activating upon free-fall. It works by using an AND mode interrupt of all the negative axes and comparing them to a threshold value (in the case of negative axis the threshold is multiplied by -1), recommended to be at 350mg (for >30 ms) and activating when the experienced negative acceleration is greater (abs. sense) than the negative threshold.
+
+### file: 6d-movement.c
+
+Inertial interrupt example, generates an interrupt when some acceleration, `threshold` is experienced on any configured axis for `duration` time. Supposedly the device knows what a "known" direction is.
+
+### file: 6d-position.c
+
+Inertial interrupt example, the interrupt line is kept active so long as the device is stable (ie acceleration on configured axes does not exceed `threshold` for `duration` time).
+
+---
+
+### 4D detection
+
+4D detection is a subset of 6D detection meant for detecting portrait/landscape screen rotations on mobile phones, etc. It functionally works the same as the 6D modes, except that detection along the Z-axis is disabled.
+
+### file: 4d-movement.c
+
+Inertial interrupt example, generates an interrupt when some acceleration, `threshold` is experienced on any configured axis for `duration` time. Supposedly the device knows what a "known" direction is.
+
+### file: 4d-position.c
+
+Inertial interrupt example, the interrupt line is kept active so long as the device is stable (ie acceleration on configured axes does not exceed `threshold` for `duration` time).
+
