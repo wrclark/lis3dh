@@ -107,10 +107,6 @@ int main() {
                 LIS3DH_CLICK_SCLICK(lis.src.click),
                 LIS3DH_CLICK_DCLICK(lis.src.click));
         }
-
-        /* sleep for 5 ms because gpio sysfs is slow at clearing interrupts */
-        /* not necessary with "real" IRQ */
-        usleep(5000);
     }
     
     /* unregister interrupt */

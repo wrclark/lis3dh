@@ -116,10 +116,6 @@ int main() {
             LIS3DH_INT_SRC_Y_LOW(lis.src.int1),
             LIS3DH_INT_SRC_X_HIGH(lis.src.int1),
             LIS3DH_INT_SRC_X_LOW(lis.src.int1));
-
-        /* sleep for 5 ms because gpio sysfs is slow at clearing interrupts */
-        /* not necessary with "real" IRQ */
-        usleep(5000);
     }
     
     /* unregister interrupt */
