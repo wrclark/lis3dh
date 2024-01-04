@@ -14,7 +14,7 @@ int main() {
 
     lis3dh_t lis;
     struct lis3dh_fifo_data fifo;
-    int k;
+    int i;
 
     lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
@@ -42,11 +42,13 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger interrupt into int pin1 */
+    /*lis.cfg.fifo.fth = 15;*/
     lis.cfg.pin1.wtm = 1; /* trigger upon FIFO watermark level reached */
 
     /* set up HP filter to remove DC component */
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_4;
+    lis.cfg.filter.fds = 0; /* remove this line, or set to 1 to enable filter */
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
@@ -70,8 +72,8 @@ int main() {
     }
 
     /* above function also writes out the qty of [x y z] sets stored in `fifo' */
-    for(k=0; k<fifo.size; k++) {
-        printf("x: %04.04f, y: %04.04f z: %04.04f\n", fifo.x[k], fifo.y[k], fifo.z[k]);
+    for(i=0; i<fifo.size; i++) {
+        printf("x: %d mg, y: %d mg, z: %d mg\n", fifo.x[i], fifo.y[i], fifo.z[i]);
     }
     
     /* unregister interrupt */

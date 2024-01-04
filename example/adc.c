@@ -33,7 +33,6 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_400_HZ;
     lis.cfg.en_adc = 1; /* enable ADC */
 
-    
     /* write device config */
     if (lis3dh_configure(&lis)) {
         /* error handling */
@@ -45,9 +44,9 @@ int main() {
     }
 
     /* print measured mV */
-    printf("ADC1: %04.04f mV\n", lis.adc.adc1);
-    printf("ADC2: %04.04f mV\n", lis.adc.adc2);
-    printf("ADC3: %04.04f mV\n", lis.adc.adc3);
+    printf("ADC1: %d mV\n", lis.adc.adc1);
+    printf("ADC2: %d mV\n", lis.adc.adc2);
+    printf("ADC3: %d mV\n", lis.adc.adc3);
 
     /* deinitalise struct */
     if (lis3dh_deinit(&lis)) {

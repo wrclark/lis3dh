@@ -43,7 +43,7 @@ int main() {
         /* error handling */
     }
 
-    printf("x: %f, y: %f, z: %f\n", lis.acc.x, lis.acc.y, lis.acc.z);
+    printf("x: %d mg, y: %d mg, z: %d mg\n", lis.acc.x, lis.acc.y, lis.acc.z);
 
     /* deinitalise struct */
     if (lis3dh_deinit(&lis)) {

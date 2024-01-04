@@ -51,7 +51,7 @@ int main() {
 
     /* read out fifo buffer data */
     for(i=0; i<data.size; i++) {
-        printf("x: %f, y: %f, z: %f\n", data.x[i], data.y[i], data.z[i]);
+        printf("x: %d mg, y: %d mg, z: %d mg\n", data.x[i], data.y[i], data.z[i]);
     }
 
     /* deinitialise struct */

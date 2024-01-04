@@ -50,11 +50,11 @@ int main() {
         /* error handling */
     }
 
-    printf("ADC1: %04.04f mV\n", lis.adc.adc1);
-    printf("ADC2: %04.04f mV\n", lis.adc.adc2);
+    printf("ADC1: %d mV\n", lis.adc.adc1);
+    printf("ADC2: %d mV\n", lis.adc.adc2);
     
     /* no decimals, step size is 1 celsius */
-    printf("ADC3: %0.f oC\n", lis.adc.adc3);
+    printf("ADC3: %d oC\n", lis.adc.adc3);
 
     /* deinitalise struct */
     if (lis3dh_deinit(&lis)) {
