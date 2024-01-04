@@ -235,11 +235,14 @@ struct lis3dh_config {
  *              same as ODR
  * Output:
  *            actual value in mV
+ *            1 lsb = 1 mv
+ * Temperature:
+ *            1 lsb = 1 deg C
  */
 struct lis3dh_adc {
-    float adc1;
-    float adc2;
-    float adc3;
+    int16_t adc1;
+    int16_t adc2;
+    int16_t adc3;
 };
 
 /* accel data not read from FIFO is put here */

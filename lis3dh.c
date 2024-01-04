@@ -373,27 +373,19 @@ int lis3dh_reset(lis3dh_t *lis3dh) {
 }
 
 /* read all 3 ADCs and convert readings depending on power mode
-   st 1 float count is equal to 1 millivolt */
+   st 1 lsb is equal to 1 millivolt */
 int lis3dh_read_adc(lis3dh_t *lis3dh) {
     uint8_t data[6];
-    int err = 0;
     uint8_t shift;
-    float divisor;
+    int err = 0;
 
-    /* read adc{1,2,3} LSB and MSB */
     err |= lis3dh->dev.read(REG_OUT_ADC1_L, data, 6);
 
-    if (lis3dh->cfg.mode == LIS3DH_MODE_LP) {
-        shift = 8;
-        divisor = 256.0;
-    } else {
-        shift = 6;
-        divisor = 1024.0;
-    }
+    shift = (lis3dh->cfg.mode == LIS3DH_MODE_LP) ? 8 : 6;
 
-    lis3dh->adc.adc1 = 1200.0 + (400.0 * (float)(((int16_t)(data[1] | (data[0] << 8))) >> shift) / divisor); 
-    lis3dh->adc.adc2 = 1200.0 + (400.0 * (float)(((int16_t)(data[3] | (data[2] << 8))) >> shift) / divisor); 
-    lis3dh->adc.adc3 = 1200.0 + (400.0 * (float)(((int16_t)(data[5] | (data[4] << 8))) >> shift) / divisor); 
+    lis3dh->adc.adc1 = 1200 + (400 * ((data[1] | data[0] << 8) >> shift) >> (16 - shift)); 
+    lis3dh->adc.adc2 = 1200 + (400 * ((data[3] | data[2] << 8) >> shift) >> (16 - shift)); 
+    lis3dh->adc.adc3 = 1200 + (400 * ((data[5] | data[4] << 8) >> shift) >> (16 - shift)); 
 
     return err;
 }
@@ -403,12 +395,13 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
    in increments of plus or negative 1 unit celsius.
    the reported temperature is stored inplace of adc3 
    temp sensing is always in 8-bit mode 
-   operating range: -40 to 85 celsius */
+   operating range: -40 to 85 celsius 
+   1 lsb = 1 deg C */
 int lis3dh_read_temp(lis3dh_t *lis3dh) {
     uint8_t data;
     int err = 0;
 
     err |= lis3dh->dev.read(REG_OUT_ADC3_H, &data, 1);
-    lis3dh->adc.adc3 = (float)((int8_t)data) + 25.0;
+    lis3dh->adc.adc3 = (int8_t)data + 25;
     return err;
 }

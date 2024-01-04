@@ -91,7 +91,7 @@ int main() {
         quit("temp()", &lis);
     }
 
-    printf("ADC1: %04.04f mV, temp: %.0f\n", lis.adc.adc1, lis.adc.adc3);
+    printf("ADC1: %d mV, temp: %d\n", lis.adc.adc1, lis.adc.adc3);
     
     /* unregister interrupt */
     if (int_unregister(GPIO_INTERRUPT_PIN)) {
