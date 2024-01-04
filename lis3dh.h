@@ -250,18 +250,18 @@ struct lis3dh_accel {
 };
 
 /* stores interrupt source registers read from the device */
-struct lis3dh_interrupt_src {
+struct lis3dh_int_src {
     uint8_t int1;
     uint8_t int2;
     uint8_t click;
 };
 
 struct lis3dh {
-    struct lis3dh_device        dev; /* fn ptrs to interface w/ device */
-    struct lis3dh_config        cfg; /* config variables to write to device */
-    struct lis3dh_accel         acc; /* accel data read from device (not FIFO) */
-    struct lis3dh_adc           adc; /* adc and optionally temp read from device */
-    struct lis3dh_interrupt_src src; /* INT_SRC registers read from device */
+    struct lis3dh_device  dev; /* fn ptrs to interface w/ device */
+    struct lis3dh_config  cfg; /* config variables to write to device */
+    struct lis3dh_accel   acc; /* accel data read from device (not FIFO) */
+    struct lis3dh_adc     adc; /* adc and optionally temp read from device */
+    struct lis3dh_int_src src; /* INT_SRC registers read from device */
 };
 
 typedef struct lis3dh lis3dh_t;

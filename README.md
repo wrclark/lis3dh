@@ -21,7 +21,7 @@ See the `examples/` dir for complete code examples
 ## Implementation
 This driver requires the user to implement the following interface functions:
 
-This project has example interface code for I2C used on Raspberry Pi.
+This project has example interface code for I2C and SPI (broken) used on Raspberry Pi 4.
 ```c
 /* initialise the "interface" */
 int init(void);
@@ -36,7 +36,7 @@ int deinit(void);
 ```
 All above functions return `0` on success, and any non-zero value on error.
 
-If `init` and `deinit` are set to `NULL`, they will be ignored. Useful on microcontrollers.
+If `init` and/or `deinit` are set to `NULL`, they will be ignored. Useful on microcontrollers.
 
 ---
 

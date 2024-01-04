@@ -28,7 +28,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     memset(&lis3dh->src, 0, sizeof lis3dh->src);
 
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
-    lis3dh->cfg.fifo.fth = 31; /* default watermark level. */
+    lis3dh->cfg.fifo.fth = 31; /* default watermark level (0-indexed). */
 
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
@@ -88,7 +88,6 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     click_ths |= (lis3dh->cfg.click_ths & 0x7F);
     click_ths |= (lis3dh->cfg.click.latch & 1) << 7;
 
-
     /* set interrupt registers */
     /* INT PIN 1 */
     ctrl_reg3 |= (lis3dh->cfg.pin1.click & 1) << 7;
@@ -112,7 +111,6 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg5 |= (lis3dh->cfg.int2.latch & 1) << 1;
     ctrl_reg5 |= (lis3dh->cfg.int1.en_4d & 1) << 2;
     ctrl_reg5 |= (lis3dh->cfg.int1.latch & 1) << 3;
-    
 
     /* set INT1_CFG and INT2_CFG */
     int1_cfg |= (lis3dh->cfg.int1.xl & 1);
@@ -144,13 +142,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     /* set enable FIFO */
     if (lis3dh->cfg.fifo.mode != 0xFF) {
         ctrl_reg5 |= 0x40; /* bit FIFO_EN */
-        
-        /* restrict maximum fifo size */
-        if (lis3dh->cfg.fifo.fth > 31) {
-            lis3dh->cfg.fifo.fth = 31;
-        }
-
-        fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth);
+        fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth & 0x1F);
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
         fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
     }
@@ -274,11 +266,8 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     scale = acc_shift(lis3dh->cfg.mode);
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
-    /* must set MSbit of the address to multi-read and 
-       have the device auto-increment the address. */
-    err |= lis3dh->dev.read(REG_OUT_X_L | 0x80, data, 6);
+    err |= lis3dh->dev.read(REG_OUT_X_L, data, 6);
 
-    /* x,y,z are now in mg */
     x = (((int16_t)((data[0] << 8) | data[1])) >> scale) * sens;
     y = (((int16_t)((data[2] << 8) | data[3])) >> scale) * sens;
     z = (((int16_t)((data[4] << 8) | data[5])) >> scale) * sens;
@@ -298,17 +287,13 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     int err = 0;
     int i, idx;
 
-    /* FIFO is always 10-bit */
+    /* FIFO is always 10-bit / normal mode */
     scale = 6;
-    sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
+    sens = acc_sensitivity(LIS3DH_MODE_NORMAL, lis3dh->cfg.range);
 
-    /* fifo buffer is max 31 */
-    fifo->size = lis3dh->cfg.fifo.fth > 31 ? 31 : lis3dh->cfg.fifo.fth;
+    fifo->size = lis3dh->cfg.fifo.fth;
 
-    /* must set MSbit of the address to multi-read and 
-       have the device auto-increment the address.
-       see 5.1.5 in datasheet. */
-    err |= lis3dh->dev.read(REG_OUT_X_L | 0x80, data, 192);
+    err |= lis3dh->dev.read(REG_OUT_X_L, data, 192);
 
     for (i=0, idx=0; i<fifo->size * 6; i+=6, idx++) {
         x = (((int16_t)((data[i + 0] << 8) | data[i + 1])) >> scale) * sens;
@@ -394,8 +379,9 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
     int err = 0;
     uint8_t shift;
     float divisor;
+
     /* read adc{1,2,3} LSB and MSB */
-    err |= lis3dh->dev.read(REG_OUT_ADC1_L | 0x80, data, 6);
+    err |= lis3dh->dev.read(REG_OUT_ADC1_L, data, 6);
 
     if (lis3dh->cfg.mode == LIS3DH_MODE_LP) {
         shift = 8;

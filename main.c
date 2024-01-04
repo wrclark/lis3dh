@@ -7,132 +7,94 @@
 #include "interrupt.h"
 #include "i2c.h"
 
-#define GPIO_INTERRUPT_PIN_INT1 12
+/* GPIO 12 or Pin 32 */
+#define GPIO_INTERRUPT_PIN 12
 
-/* print message then exit */
 static void quit(const char *msg, lis3dh_t *lis) {
     lis->dev.deinit();
     fprintf(stderr, "%s\n", msg);
     exit(1);
 }
 
+static float mag(float x, float y, float z) {
+    return (float) sqrt(x*x + y*y + z*z);
+}
+
 int main() {
 
     lis3dh_t lis;
+    struct lis3dh_fifo_data fifo;
+    int k;
 
-    /* set fn ptrs to rw on bus (i2c or SPI) */
     lis.dev.init = i2c_init;
     lis.dev.read = i2c_read;
     lis.dev.write = i2c_write;
     lis.dev.sleep = usleep;
     lis.dev.deinit = i2c_deinit;
 
-    /* initialise LIS3DH struct */
+    /* initalise LIS3DH struct */
     if (lis3dh_init(&lis)) {
         quit("init()", &lis);
     }
 
-    /* reset device because it sometimes corrupts itself */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         quit("reset()", &lis);
     }
 
     /* register interrupt */
-    if (int_register(GPIO_INTERRUPT_PIN_INT1)) {
+    if (int_register(GPIO_INTERRUPT_PIN)) {
         quit("int_register()", &lis);
     }
 
-    /* set up config */
     lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_400_HZ;
 
-    lis.cfg.pin1.ia1 = 1; /* allow INT1 through INT_PIN1 */
-    
+    lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM_TO_FIFO;
+    lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger interrupt into int pin1 */
+    lis.cfg.pin1.wtm = 1; /* trigger upon FIFO watermark level reached */
 
-    /* 1 LSb = 16 mg @ FS_2G 
-     * 0.3g threshold = 300/16 = 18.75
-     * add read error, +40mg => 240/16 = 21.25 ~= 21
-     * if you for some reason don't want to use the HP filter,
-     * just add 1g to the threshold calculation.
-     */
-    lis.cfg.int1_ths = 21;
-
-    /* Duration time is measured in N/ODR where:
-     * --- N = The content of the intX_dur integer
-     * --- ODR = the data rate, eg 100, 400...
-     * [ODR] [1 LSb in milliseconds]
-     *   400    2.5
-     * 
-     *  For ODR=400:
-     *     10 ms => 10/2.5 = 5
-     * lis.cfg.int1_dur = 5;  <== 10 ms minimum duration to wake up 
-     */
-    lis.cfg.int1_dur = 0; /* instantaneous */
-
-    /* enable X_high, Y_high and Z_high */
-    lis.cfg.int1.yh = 1;
-    lis.cfg.int1.zh = 1;
-    lis.cfg.int1.xh = 1;
-
-    /* OR mode. Think about the axis combinations for AND mode */
-    lis.cfg.int1.aoi = 0; /* set to 1 for AND mode */
-    lis.cfg.int1.en_6d = 0;
-    
-
-    /* latch interrupt. might not work. */
-    lis.cfg.int1.latch = 1;
-
-    /* set up a HP filter to ignore constant earth acceleration */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
-    lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
-    lis.cfg.filter.ia1 = 1; /* enable filter for INT1 generator */
-
+    lis.cfg.en_adc =1;
+    lis.cfg.en_temp = 1;
     
     /* write device config */
     if (lis3dh_configure(&lis)) {
-        quit("configure()", &lis);
-    }
-
-    /* read REFERENCE to set filter to current accel field */
-    if (lis3dh_reference(&lis)) {
-        quit("reference()", &lis);
-    }
-
-    /* read INT1_SRC to clear old interrupt if any */
-    if (lis3dh_read_int1(&lis)) {
-        quit("read_int1()", &lis);
-    }
-
-    for( ;; ) {
-
-        /* wait for INT1 to go active */
-        if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
-            quit("int_poll()", &lis);
-        }
-
-        /* read INT1_SRC */
-        if (lis3dh_read_int1(&lis)) {
-            quit("read_int1()", &lis);
-        }
-
-        /* print received interrupt .. */
-        printf("IA=%d ZH=%d ZL=%d YH=%d YL=%d XH=%d XL=%d\n",
-            LIS3DH_INT_SRC_IA(lis.src.int1), 
-            LIS3DH_INT_SRC_Z_HIGH(lis.src.int1),
-            LIS3DH_INT_SRC_Z_LOW(lis.src.int1),
-            LIS3DH_INT_SRC_Y_HIGH(lis.src.int1),
-            LIS3DH_INT_SRC_Y_LOW(lis.src.int1),
-            LIS3DH_INT_SRC_X_HIGH(lis.src.int1),
-            LIS3DH_INT_SRC_X_LOW(lis.src.int1));
-
-        /* sleep for 5 ms because gpio sysfs is slow at clearing interrupts */
-        /* not necessary with "real" IRQ */
-        usleep(5000);
+       quit("configure()", &lis);
     }
     
+    /* wait for interrupt from LIS3DH */
+    if (int_poll(GPIO_INTERRUPT_PIN)) {
+     
+        quit("int_poll()", &lis);
+    }
+
+    /* read as many [x y z] sets as specified by watermark level (fth) */
+    /* copy them to the fifo data struct given below as `fifo' */
+    if (lis3dh_read_fifo(&lis, &fifo)) {
+       quit("read_fifo()", &lis);
+    }
+
+    /* above function also writes out the qty of [x y z] sets stored in `fifo' */
+    for(k=0; k<fifo.size; k++) {
+        printf("x: %04.04f, y: %04.04f z: %04.04f mag: %04.04f\n",
+            fifo.x[k], fifo.y[k], fifo.z[k],
+            mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+    }
+
+
+    if (lis3dh_read_adc(&lis)) {
+        quit("adc()", &lis);
+    }
+
+    if (lis3dh_read_temp(&lis)) {
+        quit("temp()", &lis);
+    }
+
+    printf("ADC1: %04.04f mV, temp: %.0f\n", lis.adc.adc1, lis.adc.adc3);
+    
     /* unregister interrupt */
-    if (int_unregister(GPIO_INTERRUPT_PIN_INT1)) {
+    if (int_unregister(GPIO_INTERRUPT_PIN)) {
        quit("int_unregister()", &lis);
     }
 

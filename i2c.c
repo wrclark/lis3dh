@@ -15,6 +15,14 @@ Example I2C use on linux/raspberry pi
 
 #include "i2c.h"
 
+/*
+ * Pinout config for this example
+ *
+ * LIS3DH SDA => Raspberry Pi GPIO 2 (Physical pin 3)
+ * LIS3DH SCL => Raspberry Pi GPIO 3 (Physical pin 5)
+ *
+ */
+
 #define I2C_DEVICE "/dev/i2c-1"
 #define I2C_LIS3DH_ADDRESS 0x18
 
@@ -39,6 +47,10 @@ int i2c_init(void) {
 
 int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
 	uint8_t cmd[2];
+
+	if (size > 1) {
+		reg |= 0x80; /* AUTO INC */
+	}
 
 	cmd[0] = reg;
 	cmd[1] = 0x00;
