@@ -245,11 +245,12 @@ struct lis3dh_adc {
     int16_t adc3;
 };
 
-/* accel data not read from FIFO is put here */
+/* accel data read not using FIFO */
+/* 1 lsb = 1 mg */
 struct lis3dh_accel {
-    float x;
-    float y;
-    float z;
+    int16_t x;
+    int16_t y;
+    int16_t z;
 };
 
 /* stores interrupt source registers read from the device */
@@ -270,11 +271,12 @@ struct lis3dh {
 typedef struct lis3dh lis3dh_t;
 
 /* struct for containing the FIFO data */
+/* 1 lsb = 1 mg */
 struct lis3dh_fifo_data {
     uint8_t size; /* up to 32 */
-    float x[32];
-    float y[32];
-    float z[32];
+    int16_t x[32];
+    int16_t y[32];
+    int16_t z[32];
 };
 
 int lis3dh_init(lis3dh_t *lis3dh);

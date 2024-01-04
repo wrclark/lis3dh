@@ -77,10 +77,11 @@ int main() {
 
     /* above function also writes out the qty of [x y z] sets stored in `fifo' */
     for(k=0; k<fifo.size; k++) {
-        printf("x: %04.04f, y: %04.04f z: %04.04f mag: %04.04f\n",
-            fifo.x[k], fifo.y[k], fifo.z[k],
-            mag(fifo.x[k], fifo.y[k], fifo.z[k]));
+        printf("x: %d, y: %d z: %d\n",
+            fifo.x[k], fifo.y[k], fifo.z[k]);
     }
+
+    printf("mag: %04.04f\n", mag(100.0, 45.0, 120.0));
 
 
     if (lis3dh_read_adc(&lis)) {

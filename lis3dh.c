@@ -259,50 +259,39 @@ static uint8_t acc_sensitivity(uint8_t mode, uint8_t range) {
 
 int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t data[6];
-    int32_t x, y, z;
-    uint8_t scale, sens;
+    uint8_t shift, sens;
     int err = 0;
 
-    scale = acc_shift(lis3dh->cfg.mode);
+    shift = acc_shift(lis3dh->cfg.mode);
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
     err |= lis3dh->dev.read(REG_OUT_X_L, data, 6);
 
-    x = (((int16_t)((data[0] << 8) | data[1])) >> scale) * sens;
-    y = (((int16_t)((data[2] << 8) | data[3])) >> scale) * sens;
-    z = (((int16_t)((data[4] << 8) | data[5])) >> scale) * sens;
-
-    lis3dh->acc.x = ((float)x) / 1000.0;
-    lis3dh->acc.y = ((float)y) / 1000.0;
-    lis3dh->acc.z = ((float)z) / 1000.0;
+    lis3dh->acc.x = ((int16_t)(data[1] | data[0] << 8) >> shift) * sens;
+    lis3dh->acc.y = ((int16_t)(data[3] | data[2] << 8) >> shift) * sens;
+    lis3dh->acc.z = ((int16_t)(data[5] | data[4] << 8) >> shift) * sens;
 
     return err;
 }
 
 /* assume fifo has been configured and poll'd */
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
-    int32_t x, y, z;
-    uint8_t scale, sens;
     uint8_t data[192]; /* max size */
+    uint8_t sens;
     int err = 0;
     int i, idx;
 
     /* FIFO is always 10-bit / normal mode */
-    scale = 6;
     sens = acc_sensitivity(LIS3DH_MODE_NORMAL, lis3dh->cfg.range);
 
     fifo->size = lis3dh->cfg.fifo.fth;
 
-    err |= lis3dh->dev.read(REG_OUT_X_L, data, 192);
+    err |= lis3dh->dev.read(REG_OUT_X_L, data, fifo->size * 6);
 
     for (i=0, idx=0; i<fifo->size * 6; i+=6, idx++) {
-        x = (((int16_t)((data[i + 0] << 8) | data[i + 1])) >> scale) * sens;
-        y = (((int16_t)((data[i + 2] << 8) | data[i + 3])) >> scale) * sens;
-        z = (((int16_t)((data[i + 4] << 8) | data[i + 5])) >> scale) * sens;
-
-        fifo->x[idx] = ((float)x) / 1000.0;
-        fifo->y[idx] = ((float)y) / 1000.0;
-        fifo->z[idx] = ((float)z) / 1000.0;
+        fifo->x[idx] = ((int16_t)(data[i+1] | data[i+0] << 8) >> 6) * sens;
+        fifo->y[idx] = ((int16_t)(data[i+3] | data[i+2] << 8) >> 6) * sens;
+        fifo->z[idx] = ((int16_t)(data[i+5] | data[i+4] << 8) >> 6) * sens;
     }
 
     return err;
@@ -383,9 +372,9 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
 
     shift = (lis3dh->cfg.mode == LIS3DH_MODE_LP) ? 8 : 6;
 
-    lis3dh->adc.adc1 = 1200 + (400 * ((data[1] | data[0] << 8) >> shift) >> (16 - shift)); 
-    lis3dh->adc.adc2 = 1200 + (400 * ((data[3] | data[2] << 8) >> shift) >> (16 - shift)); 
-    lis3dh->adc.adc3 = 1200 + (400 * ((data[5] | data[4] << 8) >> shift) >> (16 - shift)); 
+    lis3dh->adc.adc1 = 1200 + (400 * ((int16_t)(data[1] | data[0] << 8) >> shift) >> (16 - shift)); 
+    lis3dh->adc.adc2 = 1200 + (400 * ((int16_t)(data[3] | data[2] << 8) >> shift) >> (16 - shift)); 
+    lis3dh->adc.adc3 = 1200 + (400 * ((int16_t)(data[5] | data[4] << 8) >> shift) >> (16 - shift)); 
 
     return err;
 }
