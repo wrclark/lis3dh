@@ -160,7 +160,7 @@ struct lis3dh_filter_config {
 
 /* config for FIFO */
 struct lis3dh_fifo_config {
-    uint8_t fth; /* user-specified watermark level 0-32 */
+    uint8_t size; /* size of fifo; 0-32; 0=don't use. fth=[1-32]-1 (index) */
     uint8_t trig; /* pin to trigger when watermark/overrun occurs */
     uint8_t mode; /* FIFO mode */
 };

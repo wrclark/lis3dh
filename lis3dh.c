@@ -28,7 +28,7 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     memset(&lis3dh->src, 0, sizeof lis3dh->src);
 
     lis3dh->cfg.fifo.mode = 0xFF; /* in use if neq 0xFF */
-    lis3dh->cfg.fifo.fth = 31; /* default watermark level (0-indexed). */
+    lis3dh->cfg.fifo.size = 32; /* default fifo size */
 
     lis3dh->cfg.filter.mode = 0xFF; /* in use if neq 0xFF */
     lis3dh->cfg.filter.fds = 1; /* bypass OFF by default */
@@ -139,10 +139,10 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     int1_ths = lis3dh->cfg.int1_ths & 0x7F; 
     int2_ths = lis3dh->cfg.int2_ths & 0x7F;
 
-    /* set enable FIFO */
-    if (lis3dh->cfg.fifo.mode != 0xFF) {
+    /* set enable FIFO if a mode is set and size (watermark) is not 0 */
+    if (lis3dh->cfg.fifo.mode != 0xFF && lis3dh->cfg.fifo.size != 0) {
         ctrl_reg5 |= 0x40; /* bit FIFO_EN */
-        fifo_ctrl_reg |= (lis3dh->cfg.fifo.fth & 0x1F);
+        fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);
         fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
         fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
     }
@@ -284,7 +284,7 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     /* FIFO is always 10-bit / normal mode */
     sens = acc_sensitivity(LIS3DH_MODE_NORMAL, lis3dh->cfg.range);
 
-    fifo->size = lis3dh->cfg.fifo.fth;
+    fifo->size = lis3dh->cfg.fifo.size;
 
     err |= lis3dh->dev.read(REG_OUT_X_L, data, fifo->size * 6);
 

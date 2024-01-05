@@ -4,9 +4,9 @@
 Basic example of how to use this device
 
 ### file: fifo.c
-Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used, and then dumped into memory once full. All FIFO readings use 10-bit resolution regardless of the mode set in `lis.cfg.mode`. The watermark level can be adjusted to a value [0-31] by modifying the `lis.cfg.fifo.fth` property before calling `lis3dh_configure()`.
+Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used, and then dumped into memory once full. All FIFO readings use 10-bit resolution regardless of the mode set in `lis.cfg.mode`. The watermark level can be adjusted to a value [1-32] (0 disables FIFO) by modifying the `lis.cfg.fifo.size` property before calling `lis3dh_configure()`.
 
-The LIS3DH can optionally apply a HP filter on the sample data. It can be used to greatly reduce the "DC acceleration" present.
+The LIS3DH can optionally apply a HP filter on the sampling to reduce 'static acceleration' from the data.
 
 ### file: interrupts.c
 This device supports two different interrupt "output pins," `INT1` and `INT2`. The appropriate flag must be set in either `cfg.pin1` or `cfg.pin2` and the interrupt source must be configured to trigger into `INT1` or `INT2`.
