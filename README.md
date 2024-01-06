@@ -25,11 +25,11 @@ This project has example interface code for I2C and SPI used on Raspberry Pi 4, 
 ```c
 /* initialise the "interface" */
 int init(void);
-/* read from register `reg`, `size` amount of bytes, and write them to `dst` */
+/* read from register `reg', `size' amount of bytes, and write them to `dst' */
 int read(uint8_t reg, uint8_t *dst, uint32_t size);
-/* write `value` to register `reg` */
+/* write `value' to register `reg' */
 int write(uint8_t reg, uint8_t value);
-/* sleep for `dur_us` microseconds */
+/* sleep for `dur_us' microseconds */
 int sleep(uint32_t dur_us);
 /* deinitalise the "interface" */
 int deinit(void);
@@ -42,7 +42,7 @@ If `init` and/or `deinit` are set to `NULL`, they will be ignored. Useful on mic
 
 ### STM32
 ```c
-#define LIS3DH_I2C_ADDR 0x18
+#define LIS3DH_I2C_ADDR 0x18 /* can also be 0x19 */
 
 int i2c_write(uint8_t reg, uint8_t value) {
     uint8_t buf[2] = { reg, value };
