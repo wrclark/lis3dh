@@ -42,8 +42,7 @@ int main() {
     lis.cfg.rate = LIS3DH_ODR_100_HZ;
     lis.cfg.fifo.mode = LIS3DH_FIFO_MODE_STREAM;
     lis.cfg.fifo.trig = LIS3DH_FIFO_TRIG_INT1; /* trigger interrupt into int pin1 */
-    /*lis.cfg.fifo.size = 15;*/
-    lis.cfg.pin1.wtm = 1; /* trigger upon FIFO watermark level reached */
+    lis.cfg.pin1.overrun = 1; /* trigger upon FIFO overrun */
 
     /* set up HP filter to remove DC component */
     lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;

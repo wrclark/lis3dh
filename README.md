@@ -21,7 +21,7 @@ See the `examples/` dir for complete code examples
 ## Implementation
 This driver requires the user to implement the following interface functions:
 
-This project has example interface code for I2C and SPI used on Raspberry Pi 4.
+This project has example interface code for I2C and SPI used on Raspberry Pi 4, and for STM32.
 ```c
 /* initialise the "interface" */
 int init(void);
@@ -40,8 +40,7 @@ If `init` and/or `deinit` are set to `NULL`, they will be ignored. Useful on mic
 
 ---
 
-### Using i2c on STM32
-Example code because I couldn't previously find working examples.
+### STM32
 ```c
 #define LIS3DH_I2C_ADDR 0x18
 

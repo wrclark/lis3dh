@@ -147,7 +147,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
         fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
     }
 
-    /* set enable filter */
+    /* set enable filter if mode is set */
     if (lis3dh->cfg.filter.mode != 0xFF) {
         ctrl_reg2 |= ((lis3dh->cfg.filter.mode & 0x03) << 6);
         ctrl_reg2 |= ((lis3dh->cfg.filter.cutoff & 0x03) << 4);
@@ -175,9 +175,10 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg0 |= 0x10;
     ctrl_reg0 |= (lis3dh->cfg.sdo_pullup & 1) << 7;
 
+
+    /* Registers have to be set in this order for SPI to function correctly */
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
     err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
-    
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
     err |= lis3dh->dev.write(REG_INT1_CFG, int1_cfg);
     err |= lis3dh->dev.write(REG_INT1_THS, int1_ths);
@@ -194,16 +195,13 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_ACT_DUR, lis3dh->cfg.act_dur);
     err |= lis3dh->dev.write(REG_TEMP_CFG_REG, temp_cfg_reg);
     err |= lis3dh->dev.write(REG_REFERENCE, lis3dh->cfg.reference);
-
-    err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
-
     err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
     err |= lis3dh->dev.write(REG_CTRL_REG0, ctrl_reg0);
     err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
     err |= lis3dh->dev.write(REG_CTRL_REG3, ctrl_reg3);
+    err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
 
-    /* sleep for a period TBD ~ ODR */
-    lis3dh->dev.sleep(1000); /* 50 ms */
+    lis3dh->dev.sleep(100000); /* 100 ms */
     return err;
 }
 
@@ -257,7 +255,7 @@ static uint8_t acc_sensitivity(uint8_t mode, uint8_t range) {
     }
 }
 
-
+/* read a single [x y z] set. Assume configured and poll'd */
 int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t data[6];
     uint8_t shift, sens;

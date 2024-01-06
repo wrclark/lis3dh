@@ -1,5 +1,0 @@
-SPI does not work properly
--- writes may go to wrong addr
--- FIFO read out addr 6 loop seems to not work
-
-FIFO WTM/OVRN on INT1 does not fire when FTH (watermark) is not 31 (default/max)
