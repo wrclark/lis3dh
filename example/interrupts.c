@@ -64,13 +64,12 @@ int main() {
         /* error handling */
     }
 
-    /* read as many [x y z] sets as specified by watermark level (fth) */
+    /* read as many [x y z] sets as specified by watermark level (size) */
     /* copy them to the fifo data struct given below as `fifo' */
     if (lis3dh_read_fifo(&lis, &fifo)) {
        /* error handling */
     }
 
-    /* above function also writes out the qty of [x y z] sets stored in `fifo' */
     for(i=0; i<fifo.size; i++) {
         printf("x: %d mg, y: %d mg, z: %d mg\n", fifo.x[i], fifo.y[i], fifo.z[i]);
     }

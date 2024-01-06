@@ -52,8 +52,6 @@ int main() {
 
     printf("ADC1: %d mV\n", lis.adc.adc1);
     printf("ADC2: %d mV\n", lis.adc.adc2);
-    
-    /* no decimals, step size is 1 celsius */
     printf("ADC3: %d oC\n", lis.adc.adc3);
 
     /* deinitalise struct */

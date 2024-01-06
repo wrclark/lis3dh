@@ -7,7 +7,7 @@
 int main() {
 
     lis3dh_t lis;
-    struct lis3dh_fifo_data data;
+    struct lis3dh_fifo_data fifo;
     int i;
 
     lis.dev.init = i2c_init;
@@ -36,15 +36,15 @@ int main() {
         /* error handling */
     }
 
-    /* read as many [x y z] sets as specified by watermark level (size) default max/32 */
-    /* copy them to the fifo data struct given below as `data' */
-    if (lis3dh_read_fifo(&lis, &data)) {
+    /* read as many [x y z] sets as specified by watermark level (size) default (max/32) */
+    /* copy them to the fifo data struct `fifo' */
+    if (lis3dh_read_fifo(&lis, &fifo)) {
         /* error handling */
     }
 
     /* read out fifo buffer data */
-    for(i=0; i<data.size; i++) {
-        printf("x: %d mg, y: %d mg, z: %d mg\n", data.x[i], data.y[i], data.z[i]);
+    for(i=0; i<fifo.size; i++) {
+        printf("x: %d mg, y: %d mg, z: %d mg\n", fifo.x[i], fifo.y[i], fifo.z[i]);
     }
 
     /* deinitialise struct */

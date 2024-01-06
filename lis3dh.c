@@ -1,10 +1,9 @@
-#include <stddef.h>
-#include <string.h>
+#include <stddef.h> /* NULL */
+#include <string.h> /* memset() */
 #include "lis3dh.h"
 #include "registers.h"
-#include <stdio.h>
 
-
+/* initialise device struct and read WHO_AM_I register */
 int lis3dh_init(lis3dh_t *lis3dh) {
     uint8_t result;
     int err = 0;
@@ -37,6 +36,8 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     return err;
 }
 
+/* write configuration options to the device */
+/* then sleep 100 ms to let it set itself up properly */
 int lis3dh_configure(lis3dh_t *lis3dh) {
     uint8_t ctrl_reg1, ctrl_reg2, ctrl_reg3;
     uint8_t ctrl_reg4, ctrl_reg5, ctrl_reg6;
@@ -177,7 +178,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg0 |= (lis3dh->cfg.sdo_pullup & 1) << 7;
 
 
-    /* Registers have to be set in this order for SPI to function correctly */
+    /* Registers have to be set in this order for SPI to function correctly, I think */
     err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
     err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
@@ -206,9 +207,9 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     return err;
 }
 
-/* the real size of the int you get back from reading the acc u16 
-   depends on the power mode. 
-   shift down the 16 bit word by this amount: */
+ 
+/* The "real size" of the i16 accelerometer axis reading depends on the power mode. */
+/* shift down the 16 bit word by this amount: */
 static uint8_t acc_shift(uint8_t mode) {
     switch (mode) {
         case LIS3DH_MODE_HR:     return 4;  /* i12 */
@@ -218,8 +219,8 @@ static uint8_t acc_shift(uint8_t mode) {
     }
 }
 
-/* returns a scalar that when multiplied with axis reading
-   turns it to a multiple of mg. */
+/* returns a scalar that when multiplied with axis reading */
+/* turns it to a multiple of mg (1/1000 g). */
 static uint8_t acc_sensitivity(uint8_t mode, uint8_t range) {
     switch (range) {
         case LIS3DH_FS_2G:    return (mode == LIS3DH_MODE_LP) ? 16  : (mode == LIS3DH_MODE_NORMAL) ? 4  : 1;
@@ -240,6 +241,7 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
     /* poll STATUS_REG until new data is available */
+
     do {
         err |= lis3dh->dev.read(REG_STATUS_REG, &status, 1);
         lis3dh->dev.sleep(1000);
@@ -253,18 +255,17 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     return err;
 }
 
-/* assume fifo has been configured and poll'd */
+/* assume fifo has been configured */
 /* wait until FIFO is NOT empty, then */
 /* read groups of the 6 OUT bytes until EMPTY flag in FIFO_SRC is set */
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
-    uint8_t data[6]; /* max size */
+    uint8_t data[6]; 
     uint8_t sens, fifo_src;
     int err = 0;
     int idx = 0;
 
     /* wait until there is at least 1 unread sample in the FIFO */
-    /* otherwise can cause problems at really fast ODRs and calling this */
-    /* function in a loop without delays. */
+
     do {
         err |= lis3dh->dev.read(REG_FIFO_SRC_REG, &fifo_src, 1);
         lis3dh->dev.sleep(1000);
@@ -280,6 +281,9 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
         fifo->y[idx] = ((int16_t)(data[3] | data[2] << 8) >> 6) * sens;
         fifo->z[idx] = ((int16_t)(data[5] | data[4] << 8) >> 6) * sens;
     } while (idx++ < lis3dh->cfg.fifo.size - 1 && !LIS3DH_FIFO_SRC_EMPTY(fifo_src) && !err);
+
+    /* the device stores FIFO offsets rather than `size' so a size-32 FIFO */
+    /* has an offset of 31 */
 
     fifo->size = idx;
 
@@ -310,8 +314,8 @@ int lis3dh_read_click(lis3dh_t *lis3dh) {
     return lis3dh->dev.read(REG_CLICK_SRC, &lis3dh->src.click, 1);
 }
 
-/* read REFERENCE reg to reset HP filter in REFERENCE mode
-   it uses the --current-- acceleration as the base in the filter */
+/* read REFERENCE reg to reset HP filter in REFERENCE mode */
+/* it then uses the --current-- acceleration as the base in the filter */
 int lis3dh_reference(lis3dh_t *lis3dh) {
     uint8_t res;
     return lis3dh->dev.read(REG_REFERENCE, &res, 1);
@@ -359,8 +363,8 @@ int lis3dh_reset(lis3dh_t *lis3dh) {
     return err;
 }
 
-/* read all 3 ADCs and convert readings depending on power mode
-   st 1 lsb is equal to 1 millivolt */
+/* read all 3 ADCs and convert data depending on power mode */
+/* result: 1 lsb is equal to 1 millivolt */
 int lis3dh_read_adc(lis3dh_t *lis3dh) {
     uint8_t data[6];
     uint8_t shift;
@@ -377,13 +381,13 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
     return err;
 }
 
-/* the temperature sensor only reports the difference between its current temp,
-   and the factory calibrated temperature, 25 celsius.
-   in increments of plus or negative 1 unit celsius.
-   the reported temperature is stored inplace of adc3 
-   temp sensing is always in 8-bit mode 
-   operating range: -40 to 85 celsius 
-   1 lsb = 1 deg C */
+/* the temperature sensor only reports the difference between its current temp, */
+/* and the factory calibrated temperature, 25 celsius. */
+/* in increments of plus or negative 1 unit celsius. */
+/* the reported temperature is stored inplace of adc3 */
+/* temp sensing is always in 8-bit mode */
+/* operating range: -40 to 85 celsius */
+/* 1 lsb = 1 deg C */
 int lis3dh_read_temp(lis3dh_t *lis3dh) {
     uint8_t data;
     int err = 0;

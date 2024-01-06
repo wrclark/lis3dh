@@ -46,9 +46,9 @@ int main() {
     lis.cfg.int1.latch = 1; /* latch interrupt until INT1_SRC is read */
 
     /* enable all the low directions */
-    /* this works because the low directions are compared to -threshold,
-       and are below it at rest, and greater than it at free-fall,
-       while the opposite is true for the high directions. */
+    /* this works because the low directions are compared to -threshold, */
+    /* and are below it at rest, and greater than it at free-fall, */
+    /* while the opposite is true for the high directions. */
     lis.cfg.int1.xl = 1;
     lis.cfg.int1.yl = 1;
     lis.cfg.int1.zl = 1;

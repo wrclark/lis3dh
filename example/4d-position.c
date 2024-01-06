@@ -25,7 +25,7 @@ int main() {
         /* error handling */
     }
 
-    /* reset device because it sometimes corrupts itself */
+    /* reset device just in case */
     if (lis3dh_reset(&lis)) {
         /* error handling */
     }
@@ -106,7 +106,7 @@ int main() {
             /* error handling */
         }
 
-        /* only print if INT1 interrupt active = 1*/
+        /* only print if INT1 interrupt active (IA) = 1*/
         /* ZH and ZL are always 0 in 4D mode */
         if (LIS3DH_INT_SRC_IA(lis.src.int1)) {
             /* print received interrupt .. */

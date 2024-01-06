@@ -289,7 +289,7 @@ typedef struct lis3dh lis3dh_t;
 /* struct for containing the FIFO data */
 /* 1 lsb = 1 mg */
 struct lis3dh_fifo_data {
-    uint8_t size; /* up to 32 */
+    uint8_t size; /* up to 31 */
     int16_t x[32];
     int16_t y[32];
     int16_t z[32];
