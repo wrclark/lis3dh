@@ -33,11 +33,6 @@ int main() {
         /* error handling */
     }
 
-    /* poll STATUS_REG for new [x y z] data ready */
-    if (lis3dh_poll(&lis)) {
-        /* error handling */
-    }
-
     /* read latest [x y z] data, store in the `lis' struct's `acc' field */
     if (lis3dh_read(&lis)) {
         /* error handling */

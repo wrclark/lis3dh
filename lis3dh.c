@@ -2,6 +2,7 @@
 #include <string.h>
 #include "lis3dh.h"
 #include "registers.h"
+#include <stdio.h>
 
 
 int lis3dh_init(lis3dh_t *lis3dh) {
@@ -205,32 +206,6 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     return err;
 }
 
-/* should always return something with valid start configuration */
-int lis3dh_poll(lis3dh_t *lis3dh) {
-    uint8_t status;
-    int err = 0;
-
-    do {
-        lis3dh->dev.sleep(1000); /* 1 ms */
-        err |= lis3dh->dev.read(REG_STATUS_REG, &status, 1);
-    } while (!err && !((status >> 3) & 1));
-
-    return err;
-}
-
-/* assume fifo configured */
-int lis3dh_poll_fifo(lis3dh_t *lis3dh) {
-    uint8_t src;
-    int err = 0;
-
-    do {
-        lis3dh->dev.sleep(1000); /* 1 ms */
-        err |= lis3dh->dev.read(REG_FIFO_SRC_REG, &src, 1);
-    } while (!err && !(src >> 6));
-
-    return err;
-}
-
 /* the real size of the int you get back from reading the acc u16 
    depends on the power mode. 
    shift down the 16 bit word by this amount: */
@@ -255,17 +230,22 @@ static uint8_t acc_sensitivity(uint8_t mode, uint8_t range) {
     }
 }
 
-/* read a single [x y z] set. Assume configured and poll'd */
+/* read a single [x y z] set. */
 int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t data[6];
-    uint8_t shift, sens;
+    uint8_t shift, sens, status;
     int err = 0;
 
     shift = acc_shift(lis3dh->cfg.mode);
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
-    err |= lis3dh->dev.read(REG_OUT_X_L, data, 6);
+    /* poll STATUS_REG until new data is available */
+    do {
+        err |= lis3dh->dev.read(REG_STATUS_REG, &status, 1);
+        lis3dh->dev.sleep(1000);
+    } while ((!LIS3DH_STATUS_ZYXDA(status) || !LIS3DH_STATUS_ZYXOR(status)) && !err);
 
+    err |= lis3dh->dev.read(REG_OUT_X_L, data, 6);
     lis3dh->acc.x = ((int16_t)(data[1] | data[0] << 8) >> shift) * sens;
     lis3dh->acc.y = ((int16_t)(data[3] | data[2] << 8) >> shift) * sens;
     lis3dh->acc.z = ((int16_t)(data[5] | data[4] << 8) >> shift) * sens;
@@ -274,24 +254,34 @@ int lis3dh_read(lis3dh_t *lis3dh) {
 }
 
 /* assume fifo has been configured and poll'd */
+/* wait until FIFO is NOT empty, then */
+/* read groups of the 6 OUT bytes until EMPTY flag in FIFO_SRC is set */
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
-    uint8_t data[192]; /* max size */
-    uint8_t sens;
+    uint8_t data[6]; /* max size */
+    uint8_t sens, fifo_src;
     int err = 0;
-    int i, idx;
+    int idx = 0;
+
+    /* wait until there is at least 1 unread sample in the FIFO */
+    /* otherwise can cause problems at really fast ODRs and calling this */
+    /* function in a loop without delays. */
+    do {
+        err |= lis3dh->dev.read(REG_FIFO_SRC_REG, &fifo_src, 1);
+        lis3dh->dev.sleep(1000);
+    } while (!LIS3DH_FIFO_SRC_UNREAD(fifo_src) && !err);
 
     /* FIFO is always 10-bit / normal mode */
     sens = acc_sensitivity(LIS3DH_MODE_NORMAL, lis3dh->cfg.range);
 
-    fifo->size = lis3dh->cfg.fifo.size;
+    do {
+        err |= lis3dh->dev.read(REG_OUT_X_L, data, 6);
+        err |= lis3dh->dev.read(REG_FIFO_SRC_REG, &fifo_src, 1);
+        fifo->x[idx] = ((int16_t)(data[1] | data[0] << 8) >> 6) * sens;
+        fifo->y[idx] = ((int16_t)(data[3] | data[2] << 8) >> 6) * sens;
+        fifo->z[idx] = ((int16_t)(data[5] | data[4] << 8) >> 6) * sens;
+    } while (idx++ < lis3dh->cfg.fifo.size - 1 && !LIS3DH_FIFO_SRC_EMPTY(fifo_src) && !err);
 
-    err |= lis3dh->dev.read(REG_OUT_X_L, data, fifo->size * 6);
-
-    for (i=0, idx=0; i<fifo->size * 6; i+=6, idx++) {
-        fifo->x[idx] = ((int16_t)(data[i+1] | data[i+0] << 8) >> 6) * sens;
-        fifo->y[idx] = ((int16_t)(data[i+3] | data[i+2] << 8) >> 6) * sens;
-        fifo->z[idx] = ((int16_t)(data[i+5] | data[i+4] << 8) >> 6) * sens;
-    }
+    fifo->size = idx;
 
     return err;
 }

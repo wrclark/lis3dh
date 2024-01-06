@@ -20,6 +20,22 @@
 #define LIS3DH_CLICK_SCLICK(c)    (!!(c & 0x10)) /* Single-click det. enabled */
 #define LIS3DH_CLICK_DCLICK(c)    (!!(c & 0x20)) /* Double-click det. enabled */
 
+/* macros for checking FIFO_SRC register */
+#define LIS3DH_FIFO_SRC_UNREAD(c)    (c & 0x1F)  /* FSS / current unread samples in FIFO */
+#define LIS3DH_FIFO_SRC_EMPTY(c)  (!!(c & 0x20)) /* FIFO is empty */
+#define LIS3DH_FIFO_SRC_OVRN(c)   (!!(c & 0x40)) /* FIFO has overrun (full 32) */
+#define LIS3DH_FIFO_SRC_WTM(c)    (!!(c & 0x80)) /* FIFO watermark hit (not full 32) */
+
+/* macros for checking STATUS register */
+#define LIS3DH_STATUS_XDA(c)      (!!(c & 0x01)) /* X-axis data available */
+#define LIS3DH_STATUS_YDA(c)      (!!(c & 0x02)) /* Y-axis data available */
+#define LIS3DH_STATUS_ZDA(c)      (!!(c & 0x04)) /* Z-axis data available */
+#define LIS3DH_STATUS_ZYXDA(c)    (!!(c & 0x08)) /* {Z,Y,X}-axis data available */
+#define LIS3DH_STATUS_XOR(c)      (!!(c & 0x10)) /* X-axis data has overrun (been overwritten) */
+#define LIS3DH_STATUS_YOR(c)      (!!(c & 0x20)) /* Y-axis data has overrun (been overwritten) */
+#define LIS3DH_STATUS_ZOR(c)      (!!(c & 0x40)) /* Z-axis data has overrun (been overwritten) */
+#define LIS3DH_STATUS_ZYXOR(c)    (!!(c & 0x80)) /* {Z,Y,X}-axis data has overrun (been overwritten) */
+
 /* rates */
 /* all power modes */
 #define LIS3DH_ODR_POWEROFF 0x00
@@ -282,9 +298,7 @@ struct lis3dh_fifo_data {
 int lis3dh_init(lis3dh_t *lis3dh);
 int lis3dh_deinit(lis3dh_t *lis3dh);
 int lis3dh_configure(lis3dh_t *lis3dh);
-int lis3dh_poll(lis3dh_t *lis3dh);
 int lis3dh_read(lis3dh_t *lis3dh);
-int lis3dh_poll_fifo(lis3dh_t *lis3dh);
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
 int lis3dh_read_int1(lis3dh_t *lis3dh);
 int lis3dh_read_int2(lis3dh_t *lis3dh);

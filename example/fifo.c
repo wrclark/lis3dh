@@ -36,15 +36,8 @@ int main() {
         /* error handling */
     }
 
-    /* poll fifo register until it reports that the watermark level has 
-       been reached, or that it has overwritten old data, whichever 
-       happens first. */
-    if (lis3dh_poll_fifo(&lis)) {
-        /* error handling */
-    }
-
-    /* read as many [x y z] sets as specified by watermark level (fth) */
-    /* copy them to the fifo data struct given below as `fifo' */
+    /* read as many [x y z] sets as specified by watermark level (size) default max/32 */
+    /* copy them to the fifo data struct given below as `data' */
     if (lis3dh_read_fifo(&lis, &data)) {
         /* error handling */
     }
