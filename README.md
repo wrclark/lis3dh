@@ -39,8 +39,28 @@ All above functions return `0` on success, and any non-zero value on error.
 If `init` and/or `deinit` are set to `NULL`, they will be ignored. Useful on microcontrollers.
 
 ---
+## Functions
 
-### STM32
+```c
+int lis3dh_init(lis3dh_t *lis3dh);
+int lis3dh_deinit(lis3dh_t *lis3dh);
+int lis3dh_configure(lis3dh_t *lis3dh);
+int lis3dh_read(lis3dh_t *lis3dh);
+int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo);
+int lis3dh_read_int1(lis3dh_t *lis3dh);
+int lis3dh_read_int2(lis3dh_t *lis3dh);
+int lis3dh_read_click(lis3dh_t *lis3dh);
+int lis3dh_reference(lis3dh_t *lis3dh);
+int lis3dh_reset(lis3dh_t *lis3dh);
+int lis3dh_read_adc(lis3dh_t *lis3dh);
+int lis3dh_read_temp(lis3dh_t *lis3dh);
+```
+All functions return `0` on success, and any non-zero value on error.
+
+## STM32
+Example i2c and SPI functions that work
+
+### i2c
 ```c
 #define LIS3DH_I2C_ADDR 0x18 /* can also be 0x19 */
 
@@ -59,5 +79,10 @@ int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
     HAL_I2C_Master_Receive(&hi2c2, LIS3DH_I2C_ADDR << 1, dst, size, HAL_MAX_DELAY);
     return 0;
 }
+```
+
+### SPI
+```c
+TODO
 ```
 
