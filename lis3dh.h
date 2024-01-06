@@ -53,20 +53,24 @@
 #define LIS3DH_ODR_LP_5376_HZ 0x09
 
 /* range/sens */
-#define LIS3DH_FS_2G 0x00
-#define LIS3DH_FS_4G 0x01
-#define LIS3DH_FS_8G 0x02
-#define LIS3DH_FS_16G 0x03
+#define LIS3DH_FS_2G  0x00 /* Full-scale sensing range: ± 2G */
+#define LIS3DH_FS_4G  0x01 /* Full-scale sensing range: ± 4G */
+#define LIS3DH_FS_8G  0x02 /* Full-scale sensing range: ± 8G */
+#define LIS3DH_FS_16G 0x03 /* Full-scale sensing range: ± 16G */
 
 /* operating modes */
-#define LIS3DH_MODE_HR 0x00
-#define LIS3DH_MODE_LP 0x01
-#define LIS3DH_MODE_NORMAL 0x02
+#define LIS3DH_MODE_HR     0x00 /* High resolution: 12-bit */
+#define LIS3DH_MODE_LP     0x01 /* Low-power: 8-bit */
+#define LIS3DH_MODE_NORMAL 0x02 /* Normal: 10-bit */
 
 /* FIFO modes */
-#define LIS3DH_FIFO_MODE_BYPASS 0x00
-#define LIS3DH_FIFO_MODE_NORMAL 0x01 /* "FIFO" */
-#define LIS3DH_FIFO_MODE_STREAM 0x02
+/* FIFO is not operational, and the buffer is reset. Must be used for switching FIFO modes */
+#define LIS3DH_FIFO_MODE_BYPASS         0x00
+/* Once FIFO fills up completely, it must be reset to be used again */
+#define LIS3DH_FIFO_MODE_FIFO           0x01 
+/* Continously (over)writes buffer until it is read */
+#define LIS3DH_FIFO_MODE_STREAM         0x02
+/* Stream mode, but automatically switches to FIFO mode once a set interrupt has occurred */
 #define LIS3DH_FIFO_MODE_STREAM_TO_FIFO 0x03
 
 /* FIFO trigger pin selection */
@@ -307,5 +311,6 @@ int lis3dh_reference(lis3dh_t *lis3dh);
 int lis3dh_reset(lis3dh_t *lis3dh);
 int lis3dh_read_adc(lis3dh_t *lis3dh);
 int lis3dh_read_temp(lis3dh_t *lis3dh);
+int lis3dh_fifo_reset(lis3dh_t *lis3dh);
 
 #endif

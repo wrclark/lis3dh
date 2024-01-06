@@ -54,6 +54,7 @@ int lis3dh_reference(lis3dh_t *lis3dh);
 int lis3dh_reset(lis3dh_t *lis3dh);
 int lis3dh_read_adc(lis3dh_t *lis3dh);
 int lis3dh_read_temp(lis3dh_t *lis3dh);
+int lis3dh_fifo_reset(lis3dh_t *lis3dh);
 ```
 All functions return `0` on success, and any non-zero value on error.
 

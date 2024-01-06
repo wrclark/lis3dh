@@ -283,8 +283,7 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     } while (idx++ < lis3dh->cfg.fifo.size - 1 && !LIS3DH_FIFO_SRC_EMPTY(fifo_src) && !err);
 
     /* the device stores FIFO offsets rather than `size' so a size-32 FIFO */
-    /* has an offset of 31 */
-
+    /* has an offset of 31 ^ */
     fifo->size = idx;
 
     return err;
@@ -395,4 +394,29 @@ int lis3dh_read_temp(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.read(REG_OUT_ADC3_H, &data, 1);
     lis3dh->adc.adc3 = (int8_t)data + 25;
     return err;
+}
+
+/* This function is meant to be used to reset the FIFO in `FIFO' mode. */
+int lis3dh_fifo_reset(lis3dh_t *lis3dh) {
+    /* 1. write BYPASS cfg */
+    /* 2. maybe sleep */
+    /* 3. write FIFO cfg as in configure() */
+    int err = 0;
+    uint8_t fifo_ctrl_reg = 0;
+
+    fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);
+    fifo_ctrl_reg |= (LIS3DH_FIFO_MODE_BYPASS << 6);
+    fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
+
+    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
+    lis3dh->dev.sleep(1000);
+
+    fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);
+    fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
+    fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
+
+    err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
+
+    return err;
+
 }
