@@ -19,13 +19,7 @@ The FIFO "engine" samples/appends another set of [x y z] values at 1/ODR. The ma
 |  Stream          |   `LIS3DH_FIFO_MODE_STREAM` | FIFO continously writes new data at 1/ODR and will overwrite old data until it is read/emptied. See file: `fifo-mode-stream.c`    |
 |  Stream_to_FIFO  |   `LIS3DH_FIFO_STREAM_TO_FIFO`  | FIFO behaves like Stream mode until a set interrupt is activated, then changes to a mode FIFO. |
 
-
-### file: interrupts.c
-This device supports two different interrupt "output pins," `INT1` and `INT2`. The appropriate flag must be set in either `cfg.pin1` or `cfg.pin2` and the interrupt source must be configured to trigger into `INT1` or `INT2`.
-
-This file contains example code that listens and receives an interrupt when the FIFO overrun is reached i.e. it is full.
-
-Note: `pin1.wtm` will NOT trigger if the FIFO size is 32 (default). Use `pin1.overrun` if you want an interrupt when the FIFO is full at full size (32.)
+Note: FIFO will not trigger a watermark interrupt (`pin1.wtm`) if the FIFO size is default (32; maximum size). To use the watermark interrupt, the FIFO size has to be between [1-31]. An overrun interrupt (`pin1.overrun`) will always trigger when the FIFO is full, regardless of programmed capacity.
 
 ### file: single-click.c
 

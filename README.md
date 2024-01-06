@@ -16,7 +16,7 @@ A C89 driver for the 3-axis accelerometer LIS3DH. Supports both I2C and SPI.
 
 
 ## Examples
-See the `examples/` dir for complete code examples and explanations of LIS3DH terminology
+See the `example/` dir for complete code examples and explanations of LIS3DH terminology
 
 ## Implementation
 This driver requires the user to implement the following interface functions:

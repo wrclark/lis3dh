@@ -398,23 +398,22 @@ int lis3dh_read_temp(lis3dh_t *lis3dh) {
 
 /* This function is meant to be used to reset the FIFO in `FIFO' mode. */
 int lis3dh_fifo_reset(lis3dh_t *lis3dh) {
-    /* 1. write BYPASS cfg */
-    /* 2. maybe sleep */
-    /* 3. write FIFO cfg as in configure() */
     int err = 0;
     uint8_t fifo_ctrl_reg = 0;
 
+    /* create a FIFO_MODE_BYPASS config */
     fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);
     fifo_ctrl_reg |= (LIS3DH_FIFO_MODE_BYPASS << 6);
     fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
 
+    /* write it to the device */
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
     lis3dh->dev.sleep(1000);
 
-    fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);
+    /* re-create original FIFO mode config */
     fifo_ctrl_reg |= (lis3dh->cfg.fifo.mode << 6);
-    fifo_ctrl_reg |= ((lis3dh->cfg.fifo.trig & 1) << 5);
 
+    /* write to device to immediately start FIFO sampling process */
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
 
     return err;
