@@ -31,111 +31,111 @@ Example SPI use on linux/raspberry pi
 static int fd;
 
 int spi_init(void) {
-	uint8_t mode = SPI_MODE_0;
-	uint8_t bits = 8;
-	uint32_t speed = SPI_SPEED;
+    uint8_t mode = SPI_MODE_0;
+    uint8_t bits = 8;
+    uint32_t speed = SPI_SPEED;
 
-	if ((fd = open(SPI_DEVICE, O_RDWR)) < 0) {
-		fprintf(stderr, "spi_init(): open(%s)\n", SPI_DEVICE);
-		return 1;
-	}
+    if ((fd = open(SPI_DEVICE, O_RDWR)) < 0) {
+        fprintf(stderr, "spi_init(): open(%s)\n", SPI_DEVICE);
+        return 1;
+    }
 
-	if (ioctl(fd, SPI_IOC_RD_MODE, &mode) == -1) {
-		fprintf(stderr, "spi_init(): SPI_IOC_RD_MODE\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_RD_MODE, &mode) == -1) {
+        fprintf(stderr, "spi_init(): SPI_IOC_RD_MODE\n");
+        return 1;
+    }
 
-	if (ioctl(fd, SPI_IOC_WR_MODE, &mode) == -1) {
-		fprintf(stderr, "spi_init(): SPI_IOC_WR_MODE\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_WR_MODE, &mode) == -1) {
+        fprintf(stderr, "spi_init(): SPI_IOC_WR_MODE\n");
+        return 1;
+    }
 
-	if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits) == -1) {
-		fprintf(stderr, "spi_init(): SPI_IOC_WR_BITS_PER_WORD\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits) == -1) {
+        fprintf(stderr, "spi_init(): SPI_IOC_WR_BITS_PER_WORD\n");
+        return 1;
+    }
 
-	if (ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits) == -1) {
-		fprintf(stderr, "spi_init(): SPI_IOC_RD_BITS_PER_WORD\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits) == -1) {
+        fprintf(stderr, "spi_init(): SPI_IOC_RD_BITS_PER_WORD\n");
+        return 1;
+    }
 
-	if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) {
-		fprintf(stderr, "spi_init(): SPI_IOC_WR_MAX_SPEED_HZ\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) == -1) {
+        fprintf(stderr, "spi_init(): SPI_IOC_WR_MAX_SPEED_HZ\n");
+        return 1;
+    }
 
-	if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1) {
-		fprintf(stderr, "spi_init(): SPI_IOC_RD_MAX_SPEED_HZ\n");
-		return 1;
-	}
-	
-	return 0;
+    if (ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed) == -1) {
+        fprintf(stderr, "spi_init(): SPI_IOC_RD_MAX_SPEED_HZ\n");
+        return 1;
+    }
+    
+    return 0;
 }
 
 int spi_read(uint8_t reg, uint8_t *dst, uint32_t size) {
 
-	uint8_t send[2];
-	struct spi_ioc_transfer tr[2] = {0};
+    uint8_t send[2];
+    struct spi_ioc_transfer tr[2] = {0};
 
-	/* clear 2 MSbits */
-	reg &= 0x3F;
+    /* clear 2 MSbits */
+    reg &= 0x3F;
 
-	/* set READ bit */
+    /* set READ bit */
     reg |= 0x80;
     
     if (size > 1) {
-		/* set AUTO INC bit */
+        /* set AUTO INC bit */
         reg |= 0x40;
     }
 
-	send[0] = reg;
-	send[1] = 0x00;
+    send[0] = reg;
+    send[1] = 0x00;
 
-	tr[0].tx_buf = (unsigned long) send;
-	tr[0].rx_buf = (unsigned long) 0;
-	tr[0].len = 2;
+    tr[0].tx_buf = (unsigned long) send;
+    tr[0].rx_buf = (unsigned long) 0;
+    tr[0].len = 2;
 
-	tr[1].tx_buf = (unsigned long) 0;
-	tr[1].rx_buf = (unsigned long) dst;
-	tr[1].len = size;
+    tr[1].tx_buf = (unsigned long) 0;
+    tr[1].rx_buf = (unsigned long) dst;
+    tr[1].len = size;
 
-	if (ioctl(fd, SPI_IOC_MESSAGE(2), tr) < 0) {
-		fprintf(stderr, "spi_read(): error ioctl()\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_MESSAGE(2), tr) < 0) {
+        fprintf(stderr, "spi_read(): error ioctl()\n");
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
 int spi_write(uint8_t reg, uint8_t value) {
-	struct spi_ioc_transfer tr[2] = {0};
+    struct spi_ioc_transfer tr[2] = {0};
 
-	/* clear 2 MSbits */
-	reg &= 0x3F;
+    /* clear 2 MSbits */
+    reg &= 0x3F;
 
-	tr[0].tx_buf = (unsigned long) &reg;
-	tr[0].rx_buf = (unsigned long) 0;
-	tr[0].len = 1;
+    tr[0].tx_buf = (unsigned long) &reg;
+    tr[0].rx_buf = (unsigned long) 0;
+    tr[0].len = 1;
 
-	tr[1].tx_buf = (unsigned long) &value;
-	tr[1].rx_buf = (unsigned long) 0;
-	tr[1].len = 1;
+    tr[1].tx_buf = (unsigned long) &value;
+    tr[1].rx_buf = (unsigned long) 0;
+    tr[1].len = 1;
 
-	if (ioctl(fd, SPI_IOC_MESSAGE(2), tr) < 0) {
-		fprintf(stderr, "spi_write(): error ioctl()\n");
-		return 1;
-	}
+    if (ioctl(fd, SPI_IOC_MESSAGE(2), tr) < 0) {
+        fprintf(stderr, "spi_write(): error ioctl()\n");
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
 int spi_deinit(void) {
 
-	if (fd) {
-		close(fd);
-	}
+    if (fd) {
+        close(fd);
+    }
 
-	return 0;
+    return 0;
 }
 

@@ -112,11 +112,11 @@
 
 /* user provided functions, init and deinit can be set to NULL and won't be used */
 struct lis3dh_device {
-	int (*init)(void);
-	int (*read)(uint8_t reg, uint8_t *dst, uint32_t size);
-	int (*write)(uint8_t reg, uint8_t value);
-	int (*sleep)(uint32_t dur_us);
-	int (*deinit)(void);
+    int (*init)(void);
+    int (*read)(uint8_t reg, uint8_t *dst, uint32_t size);
+    int (*write)(uint8_t reg, uint8_t value);
+    int (*sleep)(uint32_t dur_us);
+    int (*deinit)(void);
 };
 
 struct lis3dh_click_config {
