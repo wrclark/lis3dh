@@ -3,16 +3,22 @@
 ### file: simple.c
 Basic example of how to use this device
 
-### file: fifo.c
+# FIFO
 Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used, and then dumped into memory once full.
 
 All FIFO readings use 10-bit resolution regardless of the mode set in `cfg.mode`.
 
 The watermark level can be adjusted to a value [1-32] (0 disables FIFO) by modifying the `cfg.fifo.size` property before calling `lis3dh_configure()`.
 
-The LIS3DH can optionally apply a HP filter on the sampling to reduce 'static acceleration' from the data.
+The FIFO "engine" samples/appends another set of [x y z] values at 1/ODR. The maximum ODR supported by the FIFO "engine" is 200 Hz.
 
-Note: it seems that the highest data rate (ODR) possible using FIFO is 200 Hz, faster than that and it does not want to restart after 1 FIFO buffer. To sample faster, such as at the advertised 5 KHz rate, you have to use `lis3dh_read()` with `LP` mode.
+| FIFO mode        |  symbol               | description                |
+|------------------|-----------------------|----------------------------|
+|  Bypass          |   `LIS3DH_FIFO_MODE_BYPASS` | FIFO is inoperational      |
+|  FIFO            |   `LIS3DH_FIFO_MODE_FIFO`   | FIFO can be read/emptied at any time but once overrun has to be reset. See file: `fifo-mode-fifo.c`     |
+|  Stream          |   `LIS3DH_FIFO_MODE_STREAM` | FIFO continously writes new data at 1/ODR and will overwrite old data until it is read/emptied. See file: `fifo-mode-stream.c`    |
+|  Stream_to_FIFO  |   `LIS3DH_FIFO_STREAM_TO_FIFO`  | FIFO behaves like Stream mode until a set interrupt is activated, then changes to a mode FIFO. |
+
 
 ### file: interrupts.c
 This device supports two different interrupt "output pins," `INT1` and `INT2`. The appropriate flag must be set in either `cfg.pin1` or `cfg.pin2` and the interrupt source must be configured to trigger into `INT1` or `INT2`.
