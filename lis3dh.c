@@ -374,9 +374,9 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
 
     shift = (lis3dh->cfg.mode == LIS3DH_MODE_LP) ? 8 : 6;
 
-    lis3dh->adc.adc1 = 1200 + (400 * ((int16_t)(data[1] | data[0] << 8) >> shift) >> (16 - shift)); 
-    lis3dh->adc.adc2 = 1200 + (400 * ((int16_t)(data[3] | data[2] << 8) >> shift) >> (16 - shift)); 
-    lis3dh->adc.adc3 = 1200 + (400 * ((int16_t)(data[5] | data[4] << 8) >> shift) >> (16 - shift)); 
+    lis3dh->adc.adc1 = 1200 + ((800 * ((int16_t)(data[1] | data[0] << 8) >> shift)) >> (16 - shift));
+    lis3dh->adc.adc2 = 1200 + ((800 * ((int16_t)(data[3] | data[2] << 8) >> shift)) >> (16 - shift)); 
+    lis3dh->adc.adc3 = 1200 + ((800 * ((int16_t)(data[5] | data[4] << 8) >> shift)) >> (16 - shift)); 
 
     return err;
 }
