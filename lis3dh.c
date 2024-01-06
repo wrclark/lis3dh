@@ -175,7 +175,9 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg0 |= 0x10;
     ctrl_reg0 |= (lis3dh->cfg.sdo_pullup & 1) << 7;
 
-    /* write these before the control regs that start the device */
+    err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
+    err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
+    
     err |= lis3dh->dev.write(REG_FIFO_CTRL_REG, fifo_ctrl_reg);
     err |= lis3dh->dev.write(REG_INT1_CFG, int1_cfg);
     err |= lis3dh->dev.write(REG_INT1_THS, int1_ths);
@@ -193,16 +195,15 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_TEMP_CFG_REG, temp_cfg_reg);
     err |= lis3dh->dev.write(REG_REFERENCE, lis3dh->cfg.reference);
 
-    err |= lis3dh->dev.write(REG_CTRL_REG0, ctrl_reg0);
     err |= lis3dh->dev.write(REG_CTRL_REG1, ctrl_reg1);
+
+    err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
+    err |= lis3dh->dev.write(REG_CTRL_REG0, ctrl_reg0);
     err |= lis3dh->dev.write(REG_CTRL_REG2, ctrl_reg2);
     err |= lis3dh->dev.write(REG_CTRL_REG3, ctrl_reg3);
-    err |= lis3dh->dev.write(REG_CTRL_REG4, ctrl_reg4);
-    err |= lis3dh->dev.write(REG_CTRL_REG5, ctrl_reg5);
-    err |= lis3dh->dev.write(REG_CTRL_REG6, ctrl_reg6);
 
     /* sleep for a period TBD ~ ODR */
-    lis3dh->dev.sleep(50000); /* 50 ms */
+    lis3dh->dev.sleep(1000); /* 50 ms */
     return err;
 }
 
@@ -335,6 +336,9 @@ int lis3dh_reset(lis3dh_t *lis3dh) {
     /* set BOOT bit so device reloads internal trim parameters */
     err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
 
+    /* wait 30 ms */
+    lis3dh->dev.sleep(30000);
+
     /* write default values to rw regs */
     err |= lis3dh->dev.write(REG_CTRL_REG0, 0x10);
     err |= lis3dh->dev.write(REG_CTRL_REG1, 0x07);
@@ -357,6 +361,12 @@ int lis3dh_reset(lis3dh_t *lis3dh) {
     err |= lis3dh->dev.write(REG_TIME_WINDOW, 0x00);
     err |= lis3dh->dev.write(REG_ACT_THS, 0x00);
     err |= lis3dh->dev.write(REG_ACT_DUR, 0x00);
+
+    /* set BOOT bit again so device reloads internal trim parameters */
+    err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
+
+    /* wait 30 ms */
+    lis3dh->dev.sleep(30000);
     
     return err;
 }

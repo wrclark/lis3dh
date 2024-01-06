@@ -21,7 +21,7 @@ See the `examples/` dir for complete code examples
 ## Implementation
 This driver requires the user to implement the following interface functions:
 
-This project has example interface code for I2C and SPI (broken) used on Raspberry Pi 4.
+This project has example interface code for I2C and SPI used on Raspberry Pi 4.
 ```c
 /* initialise the "interface" */
 int init(void);
@@ -52,6 +52,9 @@ int i2c_write(uint8_t reg, uint8_t value) {
 }
 
 int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
+    if (size > 1) {
+        reg |= 0x80; /* auto-increment bit */
+    }
     uint8_t send[2] = { reg, 0x00 };
     HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, send, 2, HAL_MAX_DELAY);
     HAL_I2C_Master_Receive(&hi2c2, LIS3DH_I2C_ADDR << 1, dst, size, HAL_MAX_DELAY);
