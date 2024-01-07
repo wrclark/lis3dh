@@ -50,7 +50,7 @@ int main() {
 
     for ( ;; ) {
 
-        /* wait until FIFO overrun interrupt is active */
+        /* wait until FIFO watermark interrupt is active */
         if (int_poll(GPIO_INTERRUPT_PIN_INT1)) {
             /* error handling */
         }
