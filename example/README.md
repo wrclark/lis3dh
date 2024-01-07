@@ -1,5 +1,26 @@
 # lis3dh/example
 
+The LIS3DH has 3 operating modes.
+| mode | symbol | description |
+|------|---------|------------|
+| LP | `LIS3DH_MODE_LP` | Low-power mode. 8-bit acc. reading resolution. |
+| Normal | `LIS3DH_MODE_NORMAL` | "Normal" mode. 10-bit acc. reading resolution. |
+| HR | `LIS3DH_MODE_HR` | High-resolution mode. 12-bit acc. reading resolution. |
+
+There are serveral `ODR` (internal data/sample rate) options, but some may only be used in a specific operating mode.
+| ODR | mode | symbol |
+|-----|------|--------|
+| 1 Hz | any | `LIS3DH_ODR_1_HZ` |
+| 10 Hz | any | `LIS3DH_ODR_10_HZ` |
+| 25 Hz | any | `LIS3DH_ODR_25_HZ` |
+| 50 Hz | any | `LIS3DH_ODR_50_HZ` |
+| 100 Hz | any | `LIS3DH_ODR_100_HZ` |
+| 200 Hz | any | `LIS3DH_ODR_200_HZ` |
+| 400 Hz | any | `LIS3DH_ODR_400_HZ` |
+| 1344 Hz | Normal | `LIS3DH_ODR_NORM_1344_HZ` |
+| 1600 Hz | LP | `LIS3DH_ODR_LP_1600_HZ` |
+| 5376 Hz | LP | `LIS3DH_ODR_LP_5376_HZ` |
+
 ### file: simple.c
 Basic example of how to use this device
 
@@ -12,7 +33,6 @@ The watermark level can be adjusted to a value [1-32] (0 disables FIFO) by modif
 
 The FIFO "engine" samples/appends another set of [x y z] values at 1/ODR. The maximum ODR supported by the FIFO "engine" is 200 Hz.
 
-**files in `fifo/` dir**
 
 | FIFO mode        |  symbol               | description                |
 |------------------|-----------------------|----------------------------|
@@ -107,3 +127,12 @@ Inertial interrupt example, generates an interrupt when some acceleration, `thre
 
 Inertial interrupt example, the interrupt line is kept active so long as the device is stable (ie acceleration on configured axes does not exceed `threshold` for `duration` time).
 
+# "Sleep to Wake" and "Return to Sleep"
+
+The LIS3DH can be programmed to automatically switch to `LP` mode upon recognition of a specific event. Once the event is over, the device will return to whatever mode it was in before the event.
+
+When the experienced acceleration [OR combination of all axes] falls below the `threshold` value stored in `cfg.act_ths`, the device automatically switches to `LP` mode with an ODR of 10 Hz. The duration of "normal function", the Wake period duration, is specified in `cfg.act_dur`.
+
+As soon as the experienced acceleration rises above the threshold, the device restores the original mode and ODR.
+
+See file: `sleep-to-wake.c`.
