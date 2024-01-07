@@ -129,10 +129,10 @@ Inertial interrupt example, the interrupt line is kept active so long as the dev
 
 # "Sleep to Wake" and "Return to Sleep"
 
-The LIS3DH can be programmed to automatically switch to `LP` mode upon recognition of a specific event. Once the event is over, the device will return to whatever mode it was in before the event.
+The LIS3DH can be programmed to automatically enter a slow, low-power mode until it detects a specific event (acceleration exceeding `threshold`). Then, it will enter the mode set in `cfg.{mode,rate}` and behave as normal, until the `duration` since the beginning of sensing event has elapsed.
 
-When the experienced acceleration [OR combination of all axes] falls below the `threshold` value stored in `cfg.act_ths`, the device automatically switches to `LP` mode with an ODR of 10 Hz. The duration of "normal function", the Wake period duration, is specified in `cfg.act_dur`.
+The device, if configured with any non-zero values in `cfg.act_ths` and `cfg.act_dur` immediately enters low-power mode and will remain so until it experiences an acceleration [OR combination of all axes] that exceeds `threshold`. Upon experiencing such an acceleration, the device will activate `INT2` (configurable) and for a period of time (specified in `cfg.act_dur`) behave as normal, i.e. use the mode set in `cfg`.
 
-As soon as the experienced acceleration rises above the threshold, the device restores the original mode and ODR.
+When the time period (specified in `cfg.act_dur`) has elapsed, the device will trigger on `INT2` (configurable) again, and enter low-power mode. This cycle continues indefinitely.
 
 See file: `sleep-to-wake.c`.
