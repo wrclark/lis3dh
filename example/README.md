@@ -1,5 +1,6 @@
 # lis3dh/example
 
+## Operating mode
 The LIS3DH has 3 operating modes.
 | mode | symbol | description |
 |------|---------|------------|
@@ -7,6 +8,7 @@ The LIS3DH has 3 operating modes.
 | Normal | `LIS3DH_MODE_NORMAL` | "Normal" mode. 10-bit acc. reading resolution. |
 | HR | `LIS3DH_MODE_HR` | High-resolution mode. 12-bit acc. reading resolution. |
 
+## ODR
 There are serveral `ODR` (internal data/sample rate) options, but some may only be used in a specific operating mode.
 | ODR | mode | symbol |
 |-----|------|--------|
@@ -20,6 +22,18 @@ There are serveral `ODR` (internal data/sample rate) options, but some may only 
 | 1344 Hz | Normal | `LIS3DH_ODR_NORM_1344_HZ` |
 | 1600 Hz | LP | `LIS3DH_ODR_LP_1600_HZ` |
 | 5376 Hz | LP | `LIS3DH_ODR_LP_5376_HZ` |
+
+## Filter
+The LIS3DH can apply its built-in high-pass filter to samples [regular reading, FIFO reading] and some specific user-functions. It has 3 different modes.
+| mode | symbol | description |
+|------|--------|-------------|
+| Normal | `LIS3DH_FILTER_MODE_NORMAL` | Use `lis3dh_reference()` to set the filter to the current accel field, without having to wait for it to settle at/near it. |
+| Autoreset | `LIS3DH_FILTER_MODE_AUTORESET` | Same as `normal` but this mode also automatically resets itself upon an interrupt(*). |
+| REFERENCE | `LIS3DH_FILTER_MODE_REFERENCE` | Output data is calculated as the difference between `cfg.reference` and the measured acceleration. |
+
+\* INT by the generator which the filter is programmed to apply itself to.
+
+See files: `filter-normal.c`, and `filter-reference.c`.
 
 ### file: simple.c
 Basic example of how to use this device
