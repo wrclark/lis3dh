@@ -1,5 +1,6 @@
 #include <stddef.h> /* NULL */
 #include <string.h> /* memset() */
+#include <assert.h>
 #include "lis3dh.h"
 #include "registers.h"
 
@@ -7,6 +8,8 @@
 int lis3dh_init(lis3dh_t *lis3dh) {
     uint8_t result;
     int err = 0;
+
+    assert(lis3dh);
 
     /* if init has been given, check it */
     if (lis3dh->dev.init != NULL) {
@@ -47,6 +50,8 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     uint8_t click_cfg, click_ths;
     uint8_t time_limit, act_ths;
     int err = 0;
+
+    assert(lis3dh);
 
     /* the 0x07 enables Z, Y and X axis in that order */
     ctrl_reg1 = (lis3dh->cfg.rate << 4) | 0x07;
@@ -237,6 +242,8 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t shift, sens, status;
     int err = 0;
 
+    assert(lis3dh);
+
     shift = acc_shift(lis3dh->cfg.mode);
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
 
@@ -263,6 +270,9 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     uint8_t sens, fifo_src;
     int err = 0;
     int idx = 0;
+
+    assert(lis3dh);
+    assert(fifo);
 
     /* wait until there is at least 1 unread sample in the FIFO */
 
@@ -291,6 +301,9 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
 
 /* if NULL, this function doesn't have to be called */
 int lis3dh_deinit(lis3dh_t *lis3dh) {
+    
+    assert(lis3dh);
+
     if (lis3dh->dev.deinit != NULL) {
         return lis3dh->dev.deinit();
     }
@@ -300,16 +313,19 @@ int lis3dh_deinit(lis3dh_t *lis3dh) {
 
 /* read INT1_SRC to clear interrupt active flag and get relevant data */
 int lis3dh_read_int1(lis3dh_t *lis3dh) {
+    assert(lis3dh);
     return lis3dh->dev.read(REG_INT1_SRC, &lis3dh->src.int1, 1);
 }
 
 /* read INT2_SRC to clear interrupt active flag and get relevant data */
 int lis3dh_read_int2(lis3dh_t *lis3dh) {
+    assert(lis3dh);
     return lis3dh->dev.read(REG_INT2_SRC, &lis3dh->src.int2, 1);
 }
 
 /* read CLICK_SRC to clear interrupt active flag and get relevant data */
 int lis3dh_read_click(lis3dh_t *lis3dh) {
+    assert(lis3dh);
     return lis3dh->dev.read(REG_CLICK_SRC, &lis3dh->src.click, 1);
 }
 
@@ -317,12 +333,15 @@ int lis3dh_read_click(lis3dh_t *lis3dh) {
 /* it then uses the --current-- acceleration as the base in the filter */
 int lis3dh_reference(lis3dh_t *lis3dh) {
     uint8_t res;
+    assert(lis3dh);
     return lis3dh->dev.read(REG_REFERENCE, &res, 1);
 }
 
 /* reset user regs and reload trim params */
 int lis3dh_reset(lis3dh_t *lis3dh) {
     int err = 0;
+
+    assert(lis3dh);
 
     /* set BOOT bit so device reloads internal trim parameters */
     err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
@@ -369,6 +388,8 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
     uint8_t shift;
     int err = 0;
 
+    assert(lis3dh);
+
     err |= lis3dh->dev.read(REG_OUT_ADC1_L, data, 6);
 
     shift = (lis3dh->cfg.mode == LIS3DH_MODE_LP) ? 8 : 6;
@@ -391,6 +412,8 @@ int lis3dh_read_temp(lis3dh_t *lis3dh) {
     uint8_t data;
     int err = 0;
 
+    assert(lis3dh);
+
     err |= lis3dh->dev.read(REG_OUT_ADC3_H, &data, 1);
     lis3dh->adc.adc3 = (int8_t)data + 25;
     return err;
@@ -400,6 +423,8 @@ int lis3dh_read_temp(lis3dh_t *lis3dh) {
 int lis3dh_fifo_reset(lis3dh_t *lis3dh) {
     int err = 0;
     uint8_t fifo_ctrl_reg = 0;
+
+    assert(lis3dh);
 
     /* create a FIFO_MODE_BYPASS config */
     fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);
