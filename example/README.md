@@ -12,11 +12,13 @@ The watermark level can be adjusted to a value [1-32] (0 disables FIFO) by modif
 
 The FIFO "engine" samples/appends another set of [x y z] values at 1/ODR. The maximum ODR supported by the FIFO "engine" is 200 Hz.
 
+**files in `fifo/` dir**
+
 | FIFO mode        |  symbol               | description                |
 |------------------|-----------------------|----------------------------|
 |  Bypass          |   `LIS3DH_FIFO_MODE_BYPASS` | FIFO is inoperational      |
-|  FIFO            |   `LIS3DH_FIFO_MODE_FIFO`   | FIFO can be read/emptied at any time but once overrun has to be reset. See file: `fifo-mode-fifo.c`     |
-|  Stream          |   `LIS3DH_FIFO_MODE_STREAM` | FIFO continously writes new data at 1/ODR and will overwrite old data until it is read/emptied. See file: `fifo-mode-stream.c`    |
+|  FIFO            |   `LIS3DH_FIFO_MODE_FIFO`   | FIFO can be read/emptied at any time but once overrun has to be reset. See files: `fifo-int-ovrn.c`, `fifo-int-wtm.c`, `fifo.c`     |
+|  Stream          |   `LIS3DH_FIFO_MODE_STREAM` | FIFO continously writes new data at 1/ODR and will overwrite old data until it is read/emptied. See files: `stream-int-ovrn.c`, `stream-int-wtm.c`, `stream.c`    |
 |  Stream_to_FIFO  |   `LIS3DH_FIFO_STREAM_TO_FIFO`  | FIFO behaves like Stream mode until a set interrupt is activated, then changes to a mode FIFO. |
 
 Note: FIFO will not trigger a watermark interrupt (`pin1.wtm`) if the FIFO size is default (32; maximum size). To use the watermark interrupt, the FIFO size has to be between [1-31]. An overrun interrupt (`pin1.overrun`) will always trigger when the FIFO is full, regardless of programmed capacity.
