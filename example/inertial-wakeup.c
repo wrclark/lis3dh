@@ -76,7 +76,7 @@ int main() {
     lis.cfg.int1.latch = 1;
 
     /* set up a HP filter to ignore constant earth acceleration */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.ia1 = 1; /* enable filter for INT1 generator */
     

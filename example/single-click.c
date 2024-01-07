@@ -39,7 +39,7 @@ int main() {
     lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_2G;
     lis.cfg.rate = LIS3DH_ODR_400_HZ; /* minimum recommended ODR */
-    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL_REF;
+    lis.cfg.filter.mode = LIS3DH_FILTER_MODE_NORMAL;
     lis.cfg.filter.cutoff = LIS3DH_FILTER_CUTOFF_8;
     lis.cfg.filter.click = 1; /* enable filtering for CLICK function */
 

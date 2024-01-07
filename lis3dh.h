@@ -36,6 +36,7 @@
 #define LIS3DH_STATUS_ZOR(c)      (!!(c & 0x40)) /* Z-axis data has overrun (been overwritten) */
 #define LIS3DH_STATUS_ZYXOR(c)    (!!(c & 0x80)) /* {Z,Y,X}-axis data has overrun (been overwritten) */
 
+
 /* rates */
 /* all power modes */
 #define LIS3DH_ODR_POWEROFF 0x00
@@ -52,16 +53,19 @@
 #define LIS3DH_ODR_LP_1600_HZ 0x08
 #define LIS3DH_ODR_LP_5376_HZ 0x09
 
+
 /* range/sens */
 #define LIS3DH_FS_2G  0x00 /* Full-scale sensing range: ± 2G */
 #define LIS3DH_FS_4G  0x01 /* Full-scale sensing range: ± 4G */
 #define LIS3DH_FS_8G  0x02 /* Full-scale sensing range: ± 8G */
 #define LIS3DH_FS_16G 0x03 /* Full-scale sensing range: ± 16G */
 
+
 /* operating modes */
 #define LIS3DH_MODE_HR     0x00 /* High resolution: 12-bit */
 #define LIS3DH_MODE_LP     0x01 /* Low-power: 8-bit */
 #define LIS3DH_MODE_NORMAL 0x02 /* Normal: 10-bit */
+
 
 /* FIFO modes */
 /* FIFO is not operational, and the buffer is reset. Must be used for switching FIFO modes */
@@ -77,11 +81,7 @@
 #define LIS3DH_FIFO_TRIG_INT1 0x00
 #define LIS3DH_FIFO_TRIG_INT2 0x01
 
-/* filter modes */
-/* Normal mode
- * but reset by reading REFERENCE, instantly removes the DC component 
- */
-#define LIS3DH_FILTER_MODE_NORMAL_REF 0x00
+
 /* Reference mode
  * Output [x y z] data is calculated as the difference between the 
  * measured acceleration and the value stored in REFERENCE.
@@ -89,31 +89,31 @@
  * FS_2G: ~ 16mg per 1 LSb 
  * FS_4G: ~ 31mg per 1 LSb 
  * FS_8G: ~ 63mg per 1 LSb
- * FS_16G: ~127mg per 1 LSb
- * */
+ * FS_16G: ~127mg per 1 LSb */
 #define LIS3DH_FILTER_MODE_REFERENCE  0x01
+
 /* Normal mode
- * Probably the same as LIS3DH_FILTER_MODE_NORMAL_REF
- */
+ * Probably the same as 0x00 */
 #define LIS3DH_FILTER_MODE_NORMAL     0x02 
+
 /* Autoreset mode
  * The filter is automatically reset upon configured interrupt event.
- * It can be reset at any time by reading REFERENCE.
- */
+ * It can be reset at any time by reading REFERENCE. */
 #define LIS3DH_FILTER_MODE_AUTORESET  0x03
+
 
 /* filter cutoff */
 /* unfortunately, there is only a table for low-power mode,
-   and the actual cutoff-frequency depends on the ODR.
-   Naming scheme after ODR@400Hz
-   AN3308 > section 4.3.1.1 */
+ * and the actual cutoff-frequency depends on the ODR.
+ * Naming scheme after ODR@400Hz
+ * AN3308 > section 4.3.1.1 */
 #define LIS3DH_FILTER_CUTOFF_8 0x00 /* highest freq */
 #define LIS3DH_FILTER_CUTOFF_4 0x01
 #define LIS3DH_FILTER_CUTOFF_2 0x02
 #define LIS3DH_FILTER_CUTOFF_1 0x03 /* lowest freq */
 
-/* Note: IA{1,2} is interrupt activity {1,2} or interrupt generators */
 
+/* Note: IA{1,2} is interrupt activity {1,2} or interrupt generators */
 /* user provided functions, init and deinit can be set to NULL and won't be used */
 struct lis3dh_device {
     int (*init)(void);
