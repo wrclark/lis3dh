@@ -26,7 +26,7 @@ int main() {
 
     lis.cfg.mode = LIS3DH_MODE_HR;
     lis.cfg.range = LIS3DH_FS_4G;
-    lis.cfg.rate = LIS3DH_ODR_100_HZ;
+    lis.cfg.rate = LIS3DH_ODR_400_HZ;
 
     /* write device config */
     if (lis3dh_configure(&lis)) {
