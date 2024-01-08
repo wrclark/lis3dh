@@ -112,6 +112,10 @@
 #define LIS3DH_FILTER_CUTOFF_2 0x02
 #define LIS3DH_FILTER_CUTOFF_1 0x03 /* lowest freq */
 
+/* Positive and negative axis self-test */
+#define LIS3DH_SELF_TEST_0      0x01
+#define LIS3DH_SELF_TEST_1      0x02
+
 
 /* Note: IA{1,2} is interrupt activity {1,2} or interrupt generators */
 /* user provided functions, init and deinit can be set to NULL and won't be used */
@@ -226,6 +230,8 @@ struct lis3dh_config {
      *      - time_window
      *      - time_latency
      * used in CLICK)
+     * 
+     * this is the "1[LSb]" in act_dur calc
      */
     uint8_t int1_dur; /* 7-bit INT 1 duration value */
     uint8_t int2_dur; /* 7-bit INT 2 duration value */
@@ -242,6 +248,8 @@ struct lis3dh_config {
     uint8_t sdo_pullup; /* Use pull-up on SDO. default 0 use */
     uint8_t en_adc; /* enable ADC */
     uint8_t en_temp; /* enable temp sensor on ADC 3 */
+    uint8_t spi3w; /* set to 1 to enable 3-way SPI, default 0 */
+    uint8_t self_test; /* set self-test mode */
 
     uint8_t reference; /* HP filter reference */
 };

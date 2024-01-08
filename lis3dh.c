@@ -57,7 +57,7 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     ctrl_reg1 = (lis3dh->cfg.rate << 4) | 0x07;
     ctrl_reg2 = 0;
     ctrl_reg3 = 0;
-    ctrl_reg4 = (lis3dh->cfg.range << 4);
+    ctrl_reg4 = (lis3dh->cfg.range << 4) | (lis3dh->cfg.spi3w & 1);
     ctrl_reg5 = 0;
     ctrl_reg6 = 0;
     fifo_ctrl_reg = 0;
@@ -73,6 +73,9 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     act_ths = 0;
     ctrl_reg0 = 0;
     temp_cfg_reg = 0;
+
+    /* set self-test bits */
+    ctrl_reg4 |= (lis3dh->cfg.self_test & 0x03) << 1;
 
     /* determine whether to enable ADC or TEMP sensor */
     temp_cfg_reg |= (lis3dh->cfg.en_adc & 1) << 7;

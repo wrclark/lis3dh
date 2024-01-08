@@ -35,9 +35,6 @@ The LIS3DH can apply its built-in high-pass filter to samples [regular reading, 
 
 See files: `filter-normal.c`, and `filter-reference.c`.
 
-### file: simple.c
-Basic example of how to use this device
-
 # FIFO
 Instead of polling for every single [x y z] set, a FIFO with programmable capacity ("watermark") can be used, and then dumped into memory once full.
 
@@ -58,6 +55,10 @@ The FIFO "engine" samples/appends another set of [x y z] values at 1/ODR. The ma
 Note: FIFO will not trigger a watermark interrupt (`pin1.wtm`) if the FIFO size is default (32; maximum size). To use the watermark interrupt, the FIFO size has to be between [1-31]. An overrun interrupt (`pin1.overrun`) will always trigger when the FIFO is full, regardless of programmed capacity.
 
 Note: to sample data faster than 200 Hz, it is necessary to use the regular data polling functionality using `lis3dh_read()` with the appropriate configuration. See files `simple.c` and `fast.c` for examples.
+
+### file: self-test.c
+
+Run a device self-test to see if the device is within spec. Mine apparently isn't. (must be at-rest during test).
 
 ### file: single-click.c
 
