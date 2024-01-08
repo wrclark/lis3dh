@@ -14,6 +14,7 @@ A C89 driver for the 3-axis accelerometer LIS3DH. Supports both I2C and SPI.
 > - Double-click detection
 > - 4D/6D orientation detection
 > - Sleep-to-Wake/Return-to-Sleep
+> - Self test
 
 
 ## Examples
@@ -22,7 +23,7 @@ See the `example/` dir for complete code examples and explanations of LIS3DH ter
 ## Implementation
 This driver requires the user to implement the following interface functions:
 
-This project has example interface code for I2C and SPI used on Raspberry Pi 4, and for STM32.
+This project has example interface code for I2C and SPI used on Raspberry Pi 4
 ```c
 /* initialise the "interface" */
 int init(void);
@@ -58,33 +59,4 @@ int lis3dh_read_temp(lis3dh_t *lis3dh);
 int lis3dh_fifo_reset(lis3dh_t *lis3dh);
 ```
 All functions return `0` on success, and any non-zero value on error.
-
-## STM32
-Example i2c and SPI functions that work
-
-### i2c
-```c
-#define LIS3DH_I2C_ADDR 0x18 /* can also be 0x19 */
-
-int i2c_write(uint8_t reg, uint8_t value) {
-    uint8_t buf[2] = { reg, value };
-    HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, buf, 2, HAL_MAX_DELAY);
-    return 0;
-}
-
-int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
-    if (size > 1) {
-        reg |= 0x80; /* auto-increment bit */
-    }
-    uint8_t send[2] = { reg, 0x00 };
-    HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, send, 2, HAL_MAX_DELAY);
-    HAL_I2C_Master_Receive(&hi2c2, LIS3DH_I2C_ADDR << 1, dst, size, HAL_MAX_DELAY);
-    return 0;
-}
-```
-
-### SPI
-```c
-TODO
-```
 
