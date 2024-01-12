@@ -87,45 +87,45 @@ CPHA=0 CPOL=0 8 bits motorola
 ```c
 /* Every sleep call duration is a multiple of 1000 us (1 ms) */
 /* So dividing this value by 1000 is perfectly fine. */
-int sleep_us(uint32_t dur_us) {
-	HAL_Delay(dur_us / 1000);
-	return 0;
+int sleep_us(uint32_t dur_us) {``
+    HAL_Delay(dur_us / 1000);
+    return 0;
 }
 
 int spi_write(uint8_t reg, uint8_t value) {
-	uint8_t send[2];
+    uint8_t send[2];
 
-	reg &= 0x3F; /* clear 2 msbit */
-	send[0] = reg;
-	send[1] = value;
+    reg &= 0x3F; /* clear 2 msbit */
+    send[0] = reg;
+    send[1] = value;
 
-	/* CS LOW */
-	HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_RESET);
-	HAL_SPI_Transmit(&hspi1, send, 2, HAL_MAX_DELAY);
-	/* CS HIGH */
-	HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_SET);
+    /* CS LOW */
+    HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&hspi1, send, 2, HAL_MAX_DELAY);
+    /* CS HIGH */
+    HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_SET);
 
-	return 0;
+    return 0;
 }
 
 int spi_read(uint8_t reg, uint8_t *dst, uint32_t size) {
     uint8_t send[2];
-	reg |= 0x80; /* read bit = 1 */
+    reg |= 0x80; /* read bit = 1 */
 
-	if (size > 1) {
-		reg |= 0x40; /* auto increment for rx > 1 */
-	}
+    if (size > 1) {
+        reg |= 0x40; /* auto increment for rx > 1 */
+    }
 
-	send[0] = reg;
-	send[1] = 0x00;
+    send[0] = reg;
+    send[1] = 0x00;
 
-	/* CS LOW */
-	HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_RESET);
-	HAL_SPI_Transmit(&hspi1, send, 2, 1000);
+    /* CS LOW */
+    HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&hspi1, send, 2, 1000);
     HAL_SPI_Receive(&hspi1, dst, size, 1000);
     /* CS HIGH */
     HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_SET);
 
-	return 0;
+    return 0;
 }
 ```
