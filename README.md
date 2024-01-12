@@ -23,7 +23,7 @@ See the `example/` dir for complete code examples and explanations of LIS3DH ter
 ## Implementation
 This driver requires the user to implement the following interface functions:
 
-This project has example interface code for I2C and SPI used on Raspberry Pi 4
+This project has example interface code for I2C and SPI used on Raspberry Pi 4 and STM32
 ```c
 /* initialise the "interface" */
 int init(void);
@@ -60,3 +60,72 @@ int lis3dh_fifo_reset(lis3dh_t *lis3dh);
 ```
 All functions return `0` on success, and any non-zero value on error.
 
+## STM32
+### I2C
+```c
+#define LIS3DH_I2C_ADDR 0x18 /* can also be 0x19 */
+
+int i2c_write(uint8_t reg, uint8_t value) {
+    uint8_t buf[2] = { reg, value };
+    HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, buf, 2, HAL_MAX_DELAY);
+    return 0;
+}
+
+int i2c_read(uint8_t reg, uint8_t *dst, uint32_t size) {
+    if (size > 1) {
+        reg |= 0x80; /* auto-increment bit */
+    }
+    uint8_t send[2] = { reg, 0x00 };
+    HAL_I2C_Master_Transmit(&hi2c2, LIS3DH_I2C_ADDR << 1, send, 2, HAL_MAX_DELAY);
+    HAL_I2C_Master_Receive(&hi2c2, LIS3DH_I2C_ADDR << 1, dst, size, HAL_MAX_DELAY);
+    return 0;
+}
+```
+
+### SPI
+CPHA=0 CPOL=0 8 bits motorola
+```c
+/* Every sleep call duration is a multiple of 1000 us (1 ms) */
+/* So dividing this value by 1000 is perfectly fine. */
+int sleep_us(uint32_t dur_us) {
+	HAL_Delay(dur_us / 1000);
+	return 0;
+}
+
+int spi_write(uint8_t reg, uint8_t value) {
+	uint8_t send[2];
+
+	reg &= 0x3F; /* clear 2 msbit */
+	send[0] = reg;
+	send[1] = value;
+
+	/* CS LOW */
+	HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_RESET);
+	HAL_SPI_Transmit(&hspi1, send, 2, HAL_MAX_DELAY);
+	/* CS HIGH */
+	HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_SET);
+
+	return 0;
+}
+
+int spi_read(uint8_t reg, uint8_t *dst, uint32_t size) {
+    uint8_t send[2];
+	reg |= 0x80; /* read bit = 1 */
+
+	if (size > 1) {
+		reg |= 0x40; /* auto increment for rx > 1 */
+	}
+
+	send[0] = reg;
+	send[1] = 0x00;
+
+	/* CS LOW */
+	HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_RESET);
+	HAL_SPI_Transmit(&hspi1, send, 2, 1000);
+    HAL_SPI_Receive(&hspi1, dst, size, 1000);
+    /* CS HIGH */
+    HAL_GPIO_WritePin(SPI1_GPIO_CS_GPIO_Port, SPI1_GPIO_CS_Pin, GPIO_PIN_SET);
+
+	return 0;
+}
+```
