@@ -1,6 +1,6 @@
 # LIS3DH
 
-A C89 driver for the 3-axis accelerometer LIS3DH. Supports both I2C and SPI. 
+A C linux driver for the 3-axis accelerometer LIS3DH. Supports both I2C and SPI. 
 
 ### Features
 > - FIFO 
