@@ -40,7 +40,7 @@ static int write_file(const char *path, const char *str) {
 */
 int int_register(int pin) {
 
-    char path[1024];
+    char path[256];
     char buffer[64];
 
     /* begin by unregistering supplied pin, just in case */
@@ -55,13 +55,13 @@ int int_register(int pin) {
     /* sleep 500 ms to let linux set up the dir .. */
     usleep(500000);
 
-    memset(path, 0, 1024);
+    memset(path, 0, 256);
     sprintf(path, "%s%d/%s", "/sys/class/gpio/gpio", pin, "edge");
     if (write_file(path, "both") != 0) {
         return 1;
     }
 
-    memset(path, 0, 1024);
+    memset(path, 0, 256);
     sprintf(path, "%s%d/%s", "/sys/class/gpio/gpio", pin, "direction");
     if (write_file(path, "in") != 0) {
         return 1;
@@ -95,10 +95,10 @@ int int_unregister(int pin) {
 int int_poll(int pin) {
     int fd;
     struct pollfd pfd;
-    char path[1024];
+    char path[256];
     char buf[16];
 
-    memset(path, 0, 1024);
+    memset(path, 0, 256);
     sprintf(path, "%s%d/%s", "/sys/class/gpio/gpio", pin, "value");
 
     if ((fd = open(path, O_RDONLY)) == 0) {

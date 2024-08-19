@@ -1,6 +1,5 @@
 #include <stddef.h> /* NULL */
 #include <string.h> /* memset() */
-#include <assert.h>
 #include "lis3dh.h"
 #include "registers.h"
 
@@ -9,7 +8,9 @@ int lis3dh_init(lis3dh_t *lis3dh) {
     uint8_t result;
     int err = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     /* if init has been given, check it */
     if (lis3dh->dev.init != NULL) {
@@ -51,7 +52,9 @@ int lis3dh_configure(lis3dh_t *lis3dh) {
     uint8_t time_limit, act_ths;
     int err = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     /* the 0x07 enables Z, Y and X axis in that order */
     ctrl_reg1 = (lis3dh->cfg.rate << 4) | 0x07;
@@ -245,7 +248,9 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     uint8_t shift, sens, status;
     int err = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     shift = acc_shift(lis3dh->cfg.mode);
     sens = acc_sensitivity(lis3dh->cfg.mode, lis3dh->cfg.range);
@@ -258,9 +263,9 @@ int lis3dh_read(lis3dh_t *lis3dh) {
     } while ((!LIS3DH_STATUS_ZYXDA(status) || !LIS3DH_STATUS_ZYXOR(status)) && !err);
 
     err |= lis3dh->dev.read(REG_OUT_X_L, data, 6);
-    lis3dh->acc.x = ((int16_t)(data[1] | data[0] << 8) >> shift) * sens;
-    lis3dh->acc.y = ((int16_t)(data[3] | data[2] << 8) >> shift) * sens;
-    lis3dh->acc.z = ((int16_t)(data[5] | data[4] << 8) >> shift) * sens;
+    lis3dh->acc.x = (int16_t)((int16_t)(data[1] | data[0] << 8) >> shift) * sens;
+    lis3dh->acc.y = (int16_t)((int16_t)(data[3] | data[2] << 8) >> shift) * sens;
+    lis3dh->acc.z = (int16_t)((int16_t)(data[5] | data[4] << 8) >> shift) * sens;
 
     return err;
 }
@@ -270,12 +275,12 @@ int lis3dh_read(lis3dh_t *lis3dh) {
 /* read groups of the 6 OUT bytes until EMPTY flag in FIFO_SRC is set */
 int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
     uint8_t data[6]; 
-    uint8_t sens, fifo_src;
+    uint8_t sens, fifo_src, idx = 0;
     int err = 0;
-    int idx = 0;
 
-    assert(lis3dh);
-    assert(fifo);
+    if (!lis3dh || !fifo) {
+        return 1;
+    }
 
     /* wait until there is at least 1 unread sample in the FIFO */
 
@@ -305,7 +310,9 @@ int lis3dh_read_fifo(lis3dh_t *lis3dh, struct lis3dh_fifo_data *fifo) {
 /* if NULL, this function doesn't have to be called */
 int lis3dh_deinit(lis3dh_t *lis3dh) {
     
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     if (lis3dh->dev.deinit != NULL) {
         return lis3dh->dev.deinit();
@@ -316,19 +323,28 @@ int lis3dh_deinit(lis3dh_t *lis3dh) {
 
 /* read INT1_SRC to clear interrupt active flag and get relevant data */
 int lis3dh_read_int1(lis3dh_t *lis3dh) {
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
+    
     return lis3dh->dev.read(REG_INT1_SRC, &lis3dh->src.int1, 1);
 }
 
 /* read INT2_SRC to clear interrupt active flag and get relevant data */
 int lis3dh_read_int2(lis3dh_t *lis3dh) {
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
+    
     return lis3dh->dev.read(REG_INT2_SRC, &lis3dh->src.int2, 1);
 }
 
 /* read CLICK_SRC to clear interrupt active flag and get relevant data */
 int lis3dh_read_click(lis3dh_t *lis3dh) {
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
+    
     return lis3dh->dev.read(REG_CLICK_SRC, &lis3dh->src.click, 1);
 }
 
@@ -336,7 +352,11 @@ int lis3dh_read_click(lis3dh_t *lis3dh) {
 /* it then uses the --current-- acceleration as the base in the filter */
 int lis3dh_reference(lis3dh_t *lis3dh) {
     uint8_t res;
-    assert(lis3dh);
+
+    if (!lis3dh) {
+        return 1;
+    }
+
     return lis3dh->dev.read(REG_REFERENCE, &res, 1);
 }
 
@@ -344,7 +364,9 @@ int lis3dh_reference(lis3dh_t *lis3dh) {
 int lis3dh_reset(lis3dh_t *lis3dh) {
     int err = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     /* set BOOT bit so device reloads internal trim parameters */
     err |= lis3dh->dev.write(REG_CTRL_REG5, 0x80);
@@ -391,15 +413,17 @@ int lis3dh_read_adc(lis3dh_t *lis3dh) {
     uint8_t shift;
     int err = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     err |= lis3dh->dev.read(REG_OUT_ADC1_L, data, 6);
 
     shift = (lis3dh->cfg.mode == LIS3DH_MODE_LP) ? 8 : 6;
 
-    lis3dh->adc.adc1 = 1200 + ((800 * ((int16_t)(data[1] | data[0] << 8) >> shift)) >> (16 - shift));
-    lis3dh->adc.adc2 = 1200 + ((800 * ((int16_t)(data[3] | data[2] << 8) >> shift)) >> (16 - shift)); 
-    lis3dh->adc.adc3 = 1200 + ((800 * ((int16_t)(data[5] | data[4] << 8) >> shift)) >> (16 - shift)); 
+    lis3dh->adc.adc1 = (int16_t)(1200 + ((800 * ((int16_t)(data[1] | data[0] << 8) >> shift)) >> (16 - shift)));
+    lis3dh->adc.adc2 = (int16_t)(1200 + ((800 * ((int16_t)(data[3] | data[2] << 8) >> shift)) >> (16 - shift))); 
+    lis3dh->adc.adc3 = (int16_t)(1200 + ((800 * ((int16_t)(data[5] | data[4] << 8) >> shift)) >> (16 - shift))); 
 
     return err;
 }
@@ -415,7 +439,9 @@ int lis3dh_read_temp(lis3dh_t *lis3dh) {
     uint8_t data;
     int err = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     err |= lis3dh->dev.read(REG_OUT_ADC3_H, &data, 1);
     lis3dh->adc.adc3 = (int8_t)data + 25;
@@ -427,7 +453,9 @@ int lis3dh_fifo_reset(lis3dh_t *lis3dh) {
     int err = 0;
     uint8_t fifo_ctrl_reg = 0;
 
-    assert(lis3dh);
+    if (!lis3dh) {
+        return 1;
+    }
 
     /* create a FIFO_MODE_BYPASS config */
     fifo_ctrl_reg |= ((lis3dh->cfg.fifo.size - 1) & 0x1F);

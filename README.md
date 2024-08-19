@@ -60,6 +60,19 @@ int lis3dh_fifo_reset(lis3dh_t *lis3dh);
 ```
 All functions return `0` on success, and any non-zero value on error.
 
+## Raspberry Pi
+First run `$ sudo raspi-config` and enable SPI and/or I2C.
+
+Edit `main.c` to use I2C or SPI.
+
+See `i2c.c` and `spi.c` for which pins/device to use.
+```sh
+$ git clone https://github.com/wrclark/lis3dh.git
+$ cd lis3dh
+$ make
+$ ./lis3dh
+```
+
 ## STM32
 ### I2C
 ```c
