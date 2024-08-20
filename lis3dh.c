@@ -1,7 +1,6 @@
 #include <stddef.h> /* NULL */
 #include <string.h> /* memset() */
 #include "lis3dh.h"
-#include "registers.h"
 
 /* initialise device struct and read WHO_AM_I register */
 int lis3dh_init(lis3dh_t *lis3dh) {
