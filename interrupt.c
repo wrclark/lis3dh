@@ -16,7 +16,7 @@
 static int write_file(const char *path, const char *str) {
     int fd = 0;
 
-    if ((fd = open(path, O_WRONLY)) == 0) {
+    if ((fd = open(path, O_WRONLY)) < 0) {
         fprintf(stderr, "unable to open %s\n", path);
         return 1;
     }
@@ -101,7 +101,7 @@ int int_poll(int pin) {
     memset(path, 0, 256);
     sprintf(path, "%s%d/%s", "/sys/class/gpio/gpio", pin, "value");
 
-    if ((fd = open(path, O_RDONLY)) == 0) {
+    if ((fd = open(path, O_RDONLY)) < 0) {
         fprintf(stderr, "unable to open %s\n", path);
         return 1;
     }
