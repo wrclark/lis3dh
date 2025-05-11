@@ -142,3 +142,5 @@ int spi_read(uint8_t reg, uint8_t *dst, uint32_t size) {
     return 0;
 }
 ```
+
+This project is licensed under the terms of the GNU General Public License v2.0.
