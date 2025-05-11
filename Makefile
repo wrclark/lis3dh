@@ -26,4 +26,4 @@ $(BIN): $(OBJECTS)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	@rm -rf $(OBJECTS)
+	@rm -rf $(OBJECTS) $(BIN)
